@@ -1,0 +1,209 @@
+{
+  "displayName": "GenAI Metrics Dashboard",
+  "dashboardFilters": {
+    "userLabels": {}
+  },
+  "gridLayout": {
+    "columns": 2,
+    "widgets": [
+      {
+        "title": "GenAI Span Latency Percentiles",
+        "xyChart": {
+          "dataSets": [
+            {
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"genai.request.duration_ms\" resource.type=\"global\"",
+                  "aggregation": {
+                    "alignmentPeriod": "60s",
+                    "perSeriesAligner": "ALIGN_PERCENTILE_50",
+                    "crossSeriesReducer": "REDUCE_NONE"
+                  }
+                }
+              }
+            }
+          ],
+          "timeseriesData": {
+            "dataDrivenViewports": [
+              {
+                "title": "p50 Latency",
+                "xyChart": {
+                  "chartOptions": {
+                    "mode": "COLOR"
+                  },
+                  "dataSets": [
+                    {
+                      "plotType": "LINE",
+                      "targetAxis": "Y1",
+                      "timeSeriesQuery": {
+                        "timeSeriesFilter": {
+                          "filter": "metric.type=\"genai.request.duration_ms\"",
+                          "aggregation": {
+                            "alignmentPeriod": "60s",
+                            "perSeriesAligner": "ALIGN_PERCENTILE_50",
+                            "crossSeriesReducer": "REDUCE_MEAN"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "title": "Token Consumption Metrics",
+        "xyChart": {
+          "dataSets": [
+            {
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"genai.tokens.input\" OR metric.type=\"genai.tokens.output\"",
+                  "aggregation": {
+                    "alignmentPeriod": "60s",
+                    "perSeriesAligner": "ALIGN_RATE",
+                    "crossSeriesReducer": "REDUCE_SUM"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "title": "Cost Attribution by Service",
+        "xyChart": {
+          "dataSets": [
+            {
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"genai.cost.total\"",
+                  "aggregation": {
+                    "alignmentPeriod": "3600s",
+                    "perSeriesAligner": "ALIGN_SUM",
+                    "crossSeriesReducer": "REDUCE_SUM",
+                    "groupByFields": ["metric.label.service_name"]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "title": "Error Budget and SLOs",
+        "xyChart": {
+          "dataSets": [
+            {
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"genai.errors.total\"",
+                  "aggregation": {
+                    "alignmentPeriod": "60s",
+                    "perSeriesAligner": "ALIGN_RATE",
+                    "crossSeriesReducer": "REDUCE_SUM"
+                  }
+                }
+              }
+            }
+          ],
+          "thresholds": [
+            {
+              "label": "Error Budget",
+              "value": 0.01,
+              "color": "#FF0000"
+            }
+          ]
+        }
+      },
+      {
+        "title": "Provider Health Overview",
+        "xyChart": {
+          "dataSets": [
+            {
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"genai.requests.total\"",
+                  "aggregation": {
+                    "alignmentPeriod": "60s",
+                    "perSeriesAligner": "ALIGN_RATE",
+                    "crossSeriesReducer": "REDUCE_SUM",
+                    "groupByFields": ["metric.label.provider"]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "title": "Streaming Time to First Token",
+        "xyChart": {
+          "dataSets": [
+            {
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"genai.streaming.time_to_first_token_ms\"",
+                  "aggregation": {
+                    "alignmentPeriod": "60s",
+                    "perSeriesAligner": "ALIGN_PERCENTILE_95",
+                    "crossSeriesReducer": "REDUCE_MEAN"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "mosaicLayout": {
+    "columns": 12,
+    "tiles": [
+      {
+        "height": 4,
+        "widgetId": "latency-percentiles",
+        "width": 6,
+        "xPos": 0,
+        "yPos": 0
+      },
+      {
+        "height": 4,
+        "widgetId": "token-consumption",
+        "width": 6,
+        "xPos": 6,
+        "yPos": 0
+      },
+      {
+        "height": 4,
+        "widgetId": "cost-attribution",
+        "width": 6,
+        "xPos": 0,
+        "yPos": 4
+      },
+      {
+        "height": 4,
+        "widgetId": "error-budget",
+        "width": 6,
+        "xPos": 6,
+        "yPos": 4
+      },
+      {
+        "height": 4,
+        "widgetId": "provider-health",
+        "width": 6,
+        "xPos": 0,
+        "yPos": 8
+      },
+      {
+        "height": 4,
+        "widgetId": "streaming-ttft",
+        "width": 6,
+        "xPos": 6,
+        "yPos": 8
+      }
+    ]
+  }
+}

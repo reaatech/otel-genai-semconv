@@ -1,0 +1,161 @@
+{
+  "name": "LLM Observability Dashboard",
+  "description": "Comprehensive LLM observability dashboard for OpenTelemetry GenAI spans",
+  "version": "1.0.0",
+  "panels": [
+    {
+      "id": "latency-overview",
+      "type": "heatmap",
+      "title": "LLM Call Latency Heatmap",
+      "description": "Distribution of LLM call latencies over time",
+      "query": {
+        "metric": "genai.request.duration_ms",
+        "aggregation": "histogram",
+        "groupBy": ["provider", "model"]
+      },
+      "visualization": {
+        "xAxis": "time",
+        "yAxis": "duration_ms",
+        "colorScale": "count"
+      }
+    },
+    {
+      "id": "token-usage",
+      "type": "stacked_area",
+      "title": "Token Usage by Model",
+      "description": "Input and output token consumption over time",
+      "query": {
+        "metrics": ["genai.tokens.input", "genai.tokens.output"],
+        "aggregation": "sum",
+        "groupBy": ["model"]
+      },
+      "visualization": {
+        "xAxis": "time",
+        "yAxis": "token_count",
+        "stacked": true
+      }
+    },
+    {
+      "id": "cost-tracking",
+      "type": "line",
+      "title": "Cost Per Request",
+      "description": "Tracking LLM costs per request over time",
+      "query": {
+        "metric": "genai.cost.total",
+        "aggregation": "sum",
+        "groupBy": ["provider", "model"]
+      },
+      "visualization": {
+        "xAxis": "time",
+        "yAxis": "cost_usd",
+        "format": "currency"
+      }
+    },
+    {
+      "id": "error-rate",
+      "type": "line",
+      "title": "Error Rate by Provider",
+      "description": "Error rate percentage by LLM provider",
+      "query": {
+        "metrics": ["genai.requests.total", "genai.errors.total"],
+        "aggregation": "rate",
+        "groupBy": ["provider", "error_type"]
+      },
+      "visualization": {
+        "xAxis": "time",
+        "yAxis": "error_rate_percent",
+        "format": "percent"
+      }
+    },
+    {
+      "id": "trace-waterfall",
+      "type": "gantt",
+      "title": "Trace Waterfall",
+      "description": "Visualization of span timing within traces",
+      "query": {
+        "filter": "span.kind = 'internal' AND span.name LIKE 'gen_ai%'",
+        "sortBy": "start_time",
+        "limit": 100
+      },
+      "visualization": {
+        "xAxis": "time",
+        "yAxis": "trace_id",
+        "spanHeight": "duration"
+      }
+    },
+    {
+      "id": "time-to-first-token",
+      "type": "scatter",
+      "title": "Time to First Token",
+      "description": "Streaming latency metric - time until first token received",
+      "query": {
+        "metric": "genai.streaming.time_to_first_token_ms",
+        "aggregation": "percentile",
+        "percentiles": [50, 90, 95, 99],
+        "groupBy": ["provider", "model"]
+      },
+      "visualization": {
+        "xAxis": "time",
+        "yAxis": "latency_ms"
+      }
+    },
+    {
+      "id": "model-comparison",
+      "type": "bar",
+      "title": "Model Performance Comparison",
+      "description": "Compare latency and cost across different models",
+      "query": {
+        "metrics": ["genai.request.duration_ms", "genai.cost.total"],
+        "aggregation": "avg",
+        "groupBy": ["model"],
+        "timeRange": "24h"
+      },
+      "visualization": {
+        "xAxis": "model",
+        "yAxis": ["avg_latency_ms", "avg_cost_usd"],
+        "dualAxis": true
+      }
+    },
+    {
+      "id": "throughput",
+      "type": "line",
+      "title": "Request Throughput",
+      "description": "Number of LLM requests over time",
+      "query": {
+        "metric": "genai.requests.total",
+        "aggregation": "rate",
+        "groupBy": ["provider"]
+      },
+      "visualization": {
+        "xAxis": "time",
+        "yAxis": "requests_per_second"
+      }
+    }
+  ],
+  "filters": [
+    {
+      "id": "provider",
+      "type": "dropdown",
+      "label": "Provider",
+      "field": "provider",
+      "multiSelect": true
+    },
+    {
+      "id": "model",
+      "type": "dropdown",
+      "label": "Model",
+      "field": "model",
+      "multiSelect": true
+    },
+    {
+      "id": "timeRange",
+      "type": "time_range",
+      "label": "Time Range",
+      "default": "1h"
+    }
+  ],
+  "refresh": {
+    "interval": "30s",
+    "enabled": true
+  }
+}

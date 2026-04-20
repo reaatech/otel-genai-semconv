@@ -1,0 +1,199 @@
+name: LLM Performance Dashboard
+description: Comprehensive LLM performance metrics for Langfuse
+version: 1.0.0
+
+metrics:
+  - id: model_performance
+    name: Model Performance Comparison
+    type: table
+    query:
+      select:
+        - model
+        - avg(duration_ms) as avg_latency
+        - avg(input_tokens) as avg_input_tokens
+        - avg(output_tokens) as avg_output_tokens
+        - avg(cost_usd) as avg_cost
+        - count(*) as total_requests
+        - sum(case when status = 'error' then 1 else 0 end) as error_count
+      from: observations
+      where:
+        - type = 'GENERATION'
+        - start_time >= now() - interval '24 hours'
+      group_by:
+        - model
+      order_by:
+        - total_requests desc
+    columns:
+      - key: model
+        label: Model
+        type: string
+      - key: avg_latency
+        label: Avg Latency (ms)
+        type: number
+        format: integer
+      - key: avg_input_tokens
+        label: Avg Input Tokens
+        type: number
+        format: integer
+      - key: avg_output_tokens
+        label: Avg Output Tokens
+        type: number
+        format: integer
+      - key: avg_cost
+        label: Avg Cost ($)
+        type: number
+        format: currency
+      - key: total_requests
+        label: Total Requests
+        type: number
+        format: integer
+      - key: error_count
+        label: Errors
+        type: number
+        format: integer
+
+  - id: cost_tracking
+    name: Cost Tracking by Project/Team
+    type: time_series
+    query:
+      select:
+        - date_trunc('hour', start_time) as hour
+        - project_id
+        - sum(cost_usd) as total_cost
+        - sum(input_tokens) as total_input_tokens
+        - sum(output_tokens) as total_output_tokens
+      from: observations
+      where:
+        - type = 'GENERATION'
+        - start_time >= now() - interval '7 days'
+      group_by:
+        - hour
+        - project_id
+      order_by:
+        - hour asc
+    visualization:
+      x_axis: hour
+      y_axis: total_cost
+      series: project_id
+      chart_type: line
+
+  - id: usage_trends
+    name: Usage Trends and Anomalies
+    type: time_series
+    query:
+      select:
+        - date_trunc('hour', start_time) as hour
+        - count(*) as request_count
+        - avg(duration_ms) as avg_latency
+        - percentile(duration_ms, 0.95) as p95_latency
+        - percentile(duration_ms, 0.99) as p99_latency
+      from: observations
+      where:
+        - type = 'GENERATION'
+        - start_time >= now() - interval '7 days'
+      group_by:
+        - hour
+      order_by:
+        - hour asc
+    visualization:
+      x_axis: hour
+      y_axis:
+        - request_count
+        - avg_latency
+        - p95_latency
+        - p99_latency
+      chart_type: multi_line
+
+  - id: quality_metrics
+    name: Quality Metrics Integration
+    type: scatter
+    query:
+      select:
+        - trace_id
+        - model
+        - duration_ms
+        - cost_usd
+        - input_tokens
+        - output_tokens
+        - avg(score_value) as quality_score
+      from: observations o
+      left join scores s on o.trace_id = s.trace_id
+      where:
+        - o.type = 'GENERATION'
+        - o.start_time >= now() - interval '24 hours'
+        - s.name IN ('relevance', 'accuracy', 'helpfulness')
+      group_by:
+        - trace_id
+        - model
+        - duration_ms
+        - cost_usd
+        - input_tokens
+        - output_tokens
+      limit: 1000
+    visualization:
+      x_axis: duration_ms
+      y_axis: quality_score
+      color: model
+      size: cost_usd
+
+  - id: latency_percentiles
+    name: Latency Percentiles
+    type: gauge
+    query:
+      select:
+        - percentile(duration_ms, 0.50) as p50
+        - percentile(duration_ms, 0.90) as p90
+        - percentile(duration_ms, 0.95) as p95
+        - percentile(duration_ms, 0.99) as p99
+      from: observations
+      where:
+        - type = 'GENERATION'
+        - start_time >= now() - interval '1 hour'
+    thresholds:
+      p50:
+        good: 1000
+        warning: 2000
+        critical: 5000
+      p95:
+        good: 3000
+        warning: 5000
+        critical: 10000
+      p99:
+        good: 5000
+        warning: 8000
+        critical: 15000
+
+filters:
+  - id: time_range
+    type: time_range
+    label: Time Range
+    default: 24h
+    options:
+      - 1h
+      - 6h
+      - 24h
+      - 7d
+      - 30d
+
+  - id: model
+    type: multi_select
+    label: Model
+    field: model
+    query:
+      select: distinct model
+      from: observations
+      where: type = 'GENERATION'
+      order_by: model asc
+
+  - id: project
+    type: multi_select
+    label: Project
+    field: project_id
+    query:
+      select: distinct project_id
+      from: observations
+      order_by: project_id asc
+
+refresh:
+  interval: 60s
+  enabled: true
