@@ -20,6 +20,7 @@ export default [
         console: 'readonly',
         setTimeout: 'readonly',
         AbortSignal: 'readonly',
+        AbortController: 'readonly',
       },
     },
   },
