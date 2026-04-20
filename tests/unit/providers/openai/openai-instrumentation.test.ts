@@ -274,17 +274,18 @@ describe('OpenAIInstrumentation', () => {
       const { client, originalCreate } = createMockOpenAIClient();
       const chunks = [
         { id: 'chatcmpl-1', model: 'gpt-4', choices: [{ delta: { content: 'Hello' } }] },
-        { id: 'chatcmpl-1', model: 'gpt-4', choices: [{ delta: { content: ' World' }, finish_reason: 'stop' }] },
+        {
+          id: 'chatcmpl-1',
+          model: 'gpt-4',
+          choices: [{ delta: { content: ' World' }, finish_reason: 'stop' }],
+        },
       ] as unknown as ChatCompletionChunk[];
 
-      const originalStream = new OpenAIStream(
-        async function* () {
-          for (const chunk of chunks) {
-            yield chunk;
-          }
-        },
-        new AbortController(),
-      );
+      const originalStream = new OpenAIStream(async function* () {
+        for (const chunk of chunks) {
+          yield chunk;
+        }
+      }, new AbortController());
       originalCreate.mockResolvedValue(originalStream);
 
       instrumentation.instrument(client as any);
@@ -304,7 +305,9 @@ describe('OpenAIInstrumentation', () => {
       expect(collected).toEqual(chunks);
       expect((result as OpenAIStream<ChatCompletionChunk>).controller).toBeDefined();
       expect(typeof (result as OpenAIStream<ChatCompletionChunk>).tee).toBe('function');
-      expect(typeof (result as OpenAIStream<ChatCompletionChunk>).toReadableStream).toBe('function');
+      expect(typeof (result as OpenAIStream<ChatCompletionChunk>).toReadableStream).toBe(
+        'function',
+      );
     });
 
     it('should capture streaming metrics on span', async () => {

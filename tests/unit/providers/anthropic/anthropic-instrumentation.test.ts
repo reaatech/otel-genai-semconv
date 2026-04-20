@@ -288,14 +288,11 @@ describe('AnthropicInstrumentation', () => {
         { type: 'content_block_delta', delta: { text: ' World' } },
       ] as unknown as MessageStreamEvent[];
 
-      const mockStream = new Stream(
-        async function* () {
-          for (const event of events) {
-            yield event;
-          }
-        },
-        new AbortController(),
-      ) as Stream<MessageStreamEvent>;
+      const mockStream = new Stream(async function* () {
+        for (const event of events) {
+          yield event;
+        }
+      }, new AbortController()) as Stream<MessageStreamEvent>;
 
       originalCreate.mockResolvedValue(mockStream);
 
@@ -334,14 +331,11 @@ describe('AnthropicInstrumentation', () => {
         { type: 'message_delta', usage: { output_tokens: 5 } },
       ] as unknown as MessageStreamEvent[];
 
-      const mockStream = new Stream(
-        async function* () {
-          for (const event of events) {
-            yield event;
-          }
-        },
-        new AbortController(),
-      ) as Stream<MessageStreamEvent>;
+      const mockStream = new Stream(async function* () {
+        for (const event of events) {
+          yield event;
+        }
+      }, new AbortController()) as Stream<MessageStreamEvent>;
 
       originalCreate.mockResolvedValue(mockStream);
 
@@ -379,14 +373,11 @@ describe('AnthropicInstrumentation', () => {
         { type: 'message_delta', usage: { output_tokens: 25 } },
       ] as unknown as MessageStreamEvent[];
 
-      const mockStream = new Stream(
-        async function* () {
-          for (const event of events) {
-            yield event;
-          }
-        },
-        new AbortController(),
-      ) as Stream<MessageStreamEvent>;
+      const mockStream = new Stream(async function* () {
+        for (const event of events) {
+          yield event;
+        }
+      }, new AbortController()) as Stream<MessageStreamEvent>;
 
       originalCreate.mockResolvedValue(mockStream);
 
@@ -412,13 +403,10 @@ describe('AnthropicInstrumentation', () => {
       const { client, originalCreate } = createMockAnthropicClient();
       const error = new Error('Stream interrupted');
 
-      const mockStream = new Stream(
-        async function* () {
-          yield { type: 'content_block_start' } as unknown as MessageStreamEvent;
-          throw error;
-        },
-        new AbortController(),
-      ) as Stream<MessageStreamEvent>;
+      const mockStream = new Stream(async function* () {
+        yield { type: 'content_block_start' } as unknown as MessageStreamEvent;
+        throw error;
+      }, new AbortController()) as Stream<MessageStreamEvent>;
 
       originalCreate.mockResolvedValue(mockStream);
 
@@ -445,19 +433,16 @@ describe('AnthropicInstrumentation', () => {
     it('should end span after stream completes', async () => {
       const { client, originalCreate } = createMockAnthropicClient();
 
-      const mockStream = new Stream(
-        async function* () {
-          yield {
-            type: 'message_start',
-            message: {
-              id: 'msg_123',
-              model: 'claude-opus',
-              usage: { input_tokens: 10, output_tokens: 0 },
-            },
-          } as unknown as MessageStreamEvent;
-        },
-        new AbortController(),
-      ) as Stream<MessageStreamEvent>;
+      const mockStream = new Stream(async function* () {
+        yield {
+          type: 'message_start',
+          message: {
+            id: 'msg_123',
+            model: 'claude-opus',
+            usage: { input_tokens: 10, output_tokens: 0 },
+          },
+        } as unknown as MessageStreamEvent;
+      }, new AbortController()) as Stream<MessageStreamEvent>;
 
       originalCreate.mockResolvedValue(mockStream);
 
@@ -489,7 +474,11 @@ describe('AnthropicInstrumentation', () => {
       originalCreate.mockResolvedValue(mockResponse);
 
       instrumentation.instrument(client as any);
-      await client.messages.create({ model: 'claude-3-opus', max_tokens: 1024, messages: [] } as any);
+      await client.messages.create({
+        model: 'claude-3-opus',
+        max_tokens: 1024,
+        messages: [],
+      } as any);
 
       const attrMap = Object.fromEntries(
         mockSpan.setAttribute.mock.calls.map((c: unknown[]) => [c[0], c[1]]),

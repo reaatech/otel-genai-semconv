@@ -259,12 +259,7 @@ export class OpenAIInstrumentation {
     return 'unknown_error';
   }
 
-  private captureCost(
-    span: Span,
-    model: string,
-    inputTokens: number,
-    outputTokens: number,
-  ): void {
+  private captureCost(span: Span, model: string, inputTokens: number, outputTokens: number): void {
     const cost = this.costCalculator.calculate({
       provider: 'openai',
       model,

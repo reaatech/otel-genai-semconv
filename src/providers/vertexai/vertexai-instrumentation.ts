@@ -202,17 +202,9 @@ export class VertexAIInstrumentation {
       const inputTokens = response.usageMetadata.promptTokenCount ?? 0;
       const outputTokens = response.usageMetadata.candidatesTokenCount ?? 0;
       span.setAttribute('gen_ai.usage.input_tokens', inputTokens);
-      span.setAttribute(
-        'gen_ai.usage.output_tokens',
-        outputTokens,
-      );
+      span.setAttribute('gen_ai.usage.output_tokens', outputTokens);
       if (this.config.trackCosts !== false) {
-        this.captureCost(
-          span,
-          response.modelVersion ?? 'unknown',
-          inputTokens,
-          outputTokens,
-        );
+        this.captureCost(span, response.modelVersion ?? 'unknown', inputTokens, outputTokens);
       }
     }
   }
@@ -262,12 +254,7 @@ export class VertexAIInstrumentation {
     return 'unknown_error';
   }
 
-  private captureCost(
-    span: Span,
-    model: string,
-    inputTokens: number,
-    outputTokens: number,
-  ): void {
+  private captureCost(span: Span, model: string, inputTokens: number, outputTokens: number): void {
     const cost = this.costCalculator.calculate({
       provider: 'vertexai',
       model,

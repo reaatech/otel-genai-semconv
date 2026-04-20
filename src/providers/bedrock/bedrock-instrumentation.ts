@@ -92,7 +92,10 @@ export class BedrockInstrumentation {
       try {
         const response = await originalSend(command as Parameters<typeof originalSend>[0]);
 
-        const responseObj = response as { body?: Uint8Array | string; output?: { body?: Uint8Array | string } };
+        const responseObj = response as {
+          body?: Uint8Array | string;
+          output?: { body?: Uint8Array | string };
+        };
         this.captureResponse(span, responseObj, modelId);
 
         this.config.onEnd?.(span, response);
@@ -233,12 +236,7 @@ export class BedrockInstrumentation {
     return 'unknown_error';
   }
 
-  private captureCost(
-    span: Span,
-    model: string,
-    inputTokens: number,
-    outputTokens: number,
-  ): void {
+  private captureCost(span: Span, model: string, inputTokens: number, outputTokens: number): void {
     const cost = this.costCalculator.calculate({
       provider: 'bedrock',
       model,
