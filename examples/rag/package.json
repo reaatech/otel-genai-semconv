@@ -1,0 +1,18 @@
+{
+  "name": "otel-genai-semconv-example-rag",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "RAG example for otel-genai-semconv",
+  "scripts": {
+    "start": "node --loader ts-node/esm index.ts"
+  },
+  "dependencies": {
+    "otel-genai-semconv": "file:../..",
+    "openai": "^4.0.0",
+    "@opentelemetry/sdk-node": "^0.51.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.51.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.0"
+  }
+}
