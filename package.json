@@ -1,0 +1,164 @@
+{
+  "name": "otel-genai-semconv",
+  "version": "0.1.0",
+  "description": "Reference implementation of OpenTelemetry GenAI semantic conventions with instrumented wrappers for major LLM providers",
+  "author": "Rick Somers <rick@reaatech.com> (https://reaatech.com)",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/src/index.js",
+      "types": "./dist/src/index.d.ts"
+    },
+    "./openai": {
+      "import": "./dist/src/providers/openai/index.js",
+      "types": "./dist/src/providers/openai/index.d.ts"
+    },
+    "./anthropic": {
+      "import": "./dist/src/providers/anthropic/index.js",
+      "types": "./dist/src/providers/anthropic/index.d.ts"
+    },
+    "./vertexai": {
+      "import": "./dist/src/providers/vertexai/index.js",
+      "types": "./dist/src/providers/vertexai/index.d.ts"
+    },
+    "./bedrock": {
+      "import": "./dist/src/providers/bedrock/index.js",
+      "types": "./dist/src/providers/bedrock/index.d.ts"
+    },
+    "./instrumentation": {
+      "import": "./dist/src/instrumentation/index.js",
+      "types": "./dist/src/instrumentation/index.d.ts"
+    },
+    "./providers": {
+      "import": "./dist/src/providers/index.js",
+      "types": "./dist/src/providers/index.d.ts"
+    },
+    "./phoenix": {
+      "import": "./dist/src/exporters/phoenix-exporter.js",
+      "types": "./dist/src/exporters/phoenix-exporter.d.ts"
+    },
+    "./langfuse": {
+      "import": "./dist/src/exporters/langfuse-exporter.js",
+      "types": "./dist/src/exporters/langfuse-exporter.d.ts"
+    },
+    "./cloud-trace": {
+      "import": "./dist/src/exporters/cloud-trace-exporter.js",
+      "types": "./dist/src/exporters/cloud-trace-exporter.d.ts"
+    },
+    "./utils": {
+      "import": "./dist/src/utils/index.js",
+      "types": "./dist/src/utils/index.d.ts"
+    },
+    "./exporters": {
+      "import": "./dist/src/exporters/index.js",
+      "types": "./dist/src/exporters/index.d.ts"
+    },
+    "./observability": {
+      "import": "./dist/src/observability/index.js",
+      "types": "./dist/src/observability/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "dashboards",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "dev": "tsc --watch",
+    "lint": "eslint src tests",
+    "lint:fix": "eslint src tests --fix",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\" \"*.json\" \"*.yaml\" \"*.yml\" examples/**/*.json",
+    "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\" \"*.json\" \"*.yaml\" \"*.yml\" examples/**/*.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "prepare": "node -e \"try { require('child_process').execSync('git rev-parse --git-dir', {stdio: 'ignore'}); require('child_process').execSync('husky', {stdio: 'inherit'}); } catch {}\"",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "keywords": [
+    "opentelemetry",
+    "genai",
+    "semantic-conventions",
+    "observability",
+    "instrumentation",
+    "llm",
+    "tracing",
+    "openai",
+    "anthropic",
+    "vertex-ai",
+    "bedrock"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/reaatech/otel-genai-semconv.git"
+  },
+  "homepage": "https://github.com/reaatech/otel-genai-semconv#readme",
+  "bugs": {
+    "url": "https://github.com/reaatech/otel-genai-semconv/issues"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.8.0",
+    "@opentelemetry/core": "^1.24.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.51.0",
+    "@opentelemetry/resources": "^1.24.0",
+    "@opentelemetry/sdk-metrics": "^1.24.0",
+    "@opentelemetry/sdk-node": "^0.51.0",
+    "@opentelemetry/sdk-trace-base": "^1.24.0",
+    "@opentelemetry/semantic-conventions": "^1.24.0",
+    "pino": "^8.18.0",
+    "pino-pretty": "^10.3.0",
+    "tiktoken": "^1.0.13",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@anthropic-ai/sdk": "^0.18.0",
+    "@aws-sdk/client-bedrock-runtime": "^3.500.0",
+    "@google-ai/generativelanguage": "^2.0.0",
+    "@opentelemetry/exporter-jaeger": "^1.24.0",
+    "@types/node": "^20.11.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "@vitest/coverage-v8": "^1.3.0",
+    "eslint": "^8.56.0",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.2",
+    "openai": "^4.28.0",
+    "prettier": "^3.2.5",
+    "typescript": "^5.3.3",
+    "vitest": "^1.3.0"
+  },
+  "peerDependencies": {
+    "@anthropic-ai/sdk": ">=0.18.0",
+    "@aws-sdk/client-bedrock-runtime": ">=3.500.0",
+    "@google-ai/generativelanguage": ">=2.0.0",
+    "openai": ">=4.28.0"
+  },
+  "peerDependenciesMeta": {
+    "@anthropic-ai/sdk": {
+      "optional": true
+    },
+    "@aws-sdk/client-bedrock-runtime": {
+      "optional": true
+    },
+    "@google-ai/generativelanguage": {
+      "optional": true
+    },
+    "openai": {
+      "optional": true
+    }
+  },
+  "overrides": {
+    "@tootallnate/once": "^3.0.1",
+    "esbuild": "^0.28.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
