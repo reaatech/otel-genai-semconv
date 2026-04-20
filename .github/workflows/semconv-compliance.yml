@@ -1,0 +1,30 @@
+name: SemConv Compliance
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  compliance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+      - run: npm ci
+      - name: Check attribute naming
+        run: |
+          echo "Checking GenAI semantic convention compliance..."
+          npm run typecheck
+      - name: Validate span structure
+        run: |
+          echo "Validating span attribute structure..."
+          npm run test -- --run tests/unit/semconv-compliance.test.ts
+      - name: Check event structure
+        run: |
+          echo "Checking event naming compliance..."
+          grep -r "gen_ai\." src/ | grep -v ".test.ts" | sort -u
