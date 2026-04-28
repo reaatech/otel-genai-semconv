@@ -110,7 +110,7 @@
     "@opentelemetry/resources": "^1.24.0",
     "@opentelemetry/sdk-metrics": "^1.24.0",
     "@opentelemetry/sdk-node": "^0.51.0",
-    "@opentelemetry/sdk-trace-base": "^1.24.0",
+    "@opentelemetry/sdk-trace-base": "^2.7.0",
     "@opentelemetry/semantic-conventions": "^1.24.0",
     "pino": "^8.18.0",
     "pino-pretty": "^10.3.0",
