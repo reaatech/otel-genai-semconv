@@ -2,7 +2,8 @@
  * Structured logging for GenAI instrumentation
  */
 
-import { pino } from 'pino';
+import pino from 'pino';
+import type { Logger, LoggerOptions } from 'pino';
 
 /**
  * Logger configuration
@@ -19,17 +20,17 @@ export interface LoggerConfig {
 /**
  * Create a structured logger for GenAI instrumentation
  */
-export function createLogger(config: LoggerConfig = {}): pino.Logger {
+export function createLogger(config: LoggerConfig = {}): Logger {
   const {
     level = process.env.LOG_LEVEL ?? 'info',
     prettyPrint = process.env.NODE_ENV !== 'production',
     serviceName = 'otel-genai-semconv',
   } = config;
 
-  const options: pino.LoggerOptions = {
+  const options: LoggerOptions = {
     level,
     formatters: {
-      level: (label) => ({ level: label }),
+      level: (label: string) => ({ level: label }),
     },
     base: {
       service: serviceName,
@@ -84,7 +85,7 @@ export const logger = createLogger();
  * Log a GenAI event with context
  */
 export function logGenAIEvent(
-  logger: pino.Logger,
+  logger: Logger,
   level: 'info' | 'warn' | 'error' | 'debug',
   message: string,
   context: LogContext = {},
