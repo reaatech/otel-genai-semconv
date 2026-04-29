@@ -3,9 +3,9 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
-COPY package.json package-lock.json ./
-RUN npm ci --only=dev
+# Copy package files and npm config
+COPY package.json package-lock.json .npmrc ./
+RUN npm ci
 
 # Copy source
 COPY . .
@@ -23,8 +23,8 @@ RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
 
 # Copy package files and install production deps
-COPY package.json package-lock.json ./
-RUN npm ci --only=production && npm cache clean --force
+COPY package.json package-lock.json .npmrc ./
+RUN npm ci --omit=dev && npm cache clean --force
 
 # Copy built files from builder
 COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
