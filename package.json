@@ -132,7 +132,7 @@
     "openai": "^4.28.0",
     "prettier": "^3.2.5",
     "typescript": "^5.3.3",
-    "vitest": "^1.3.0"
+    "vitest": "^4.1.5"
   },
   "peerDependencies": {
     "@anthropic-ai/sdk": ">=0.18.0",
