@@ -104,13 +104,13 @@
     "url": "https://github.com/reaatech/otel-genai-semconv/issues"
   },
   "dependencies": {
-    "@opentelemetry/api": "^1.8.0",
+    "@opentelemetry/api": "^1.9.0",
     "@opentelemetry/core": "^2.7.0",
     "@opentelemetry/exporter-trace-otlp-http": "^0.51.0",
-    "@opentelemetry/resources": "^1.24.0",
-    "@opentelemetry/sdk-metrics": "^1.24.0",
+    "@opentelemetry/resources": "^2.7.0",
+    "@opentelemetry/sdk-metrics": "^2.7.0",
     "@opentelemetry/sdk-node": "^0.51.0",
-    "@opentelemetry/sdk-trace-base": "^1.24.0",
+    "@opentelemetry/sdk-trace-base": "^2.7.0",
     "@opentelemetry/semantic-conventions": "^1.24.0",
     "pino": "^8.18.0",
     "pino-pretty": "^10.3.0",
