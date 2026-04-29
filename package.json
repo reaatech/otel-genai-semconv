@@ -112,7 +112,7 @@
     "@opentelemetry/sdk-node": "^0.51.0",
     "@opentelemetry/sdk-trace-base": "^1.24.0",
     "@opentelemetry/semantic-conventions": "^1.24.0",
-    "pino": "^8.18.0",
+    "pino": "^10.3.1",
     "pino-pretty": "^10.3.0",
     "tiktoken": "^1.0.13",
     "zod": "^3.22.4"
