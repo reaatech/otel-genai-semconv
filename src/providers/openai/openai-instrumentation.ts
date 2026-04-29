@@ -166,9 +166,7 @@ export class OpenAIInstrumentation {
     async function* wrappedStream(): AsyncGenerator<ChatCompletionChunk> {
       try {
         for await (const chunk of stream) {
-          if (timeToFirstTokenMs === undefined) {
-            timeToFirstTokenMs = Date.now() - startTime;
-          }
+          timeToFirstTokenMs ??= Date.now() - startTime;
           chunkCount++;
           responseId ??= chunk.id;
           responseModel ??= chunk.model;

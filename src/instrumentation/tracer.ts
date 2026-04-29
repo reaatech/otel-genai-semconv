@@ -22,9 +22,7 @@ export class TracerManager {
    * Get or create the tracer
    */
   getTracer(): Tracer {
-    if (!this.tracer) {
-      this.tracer = trace.getTracer(this.tracerName, this.tracerVersion);
-    }
+    this.tracer ??= trace.getTracer(this.tracerName, this.tracerVersion);
     return this.tracer;
   }
 
@@ -78,7 +76,6 @@ export class TracerManager {
    */
   setActiveSpan(span: Span): Context {
     const ctx = trace.setSpan(context.active(), span);
-    context.setGlobalContextManager;
     return ctx;
   }
 
@@ -143,8 +140,6 @@ let defaultTracerManager: TracerManager | null = null;
  * Get the default tracer manager instance
  */
 export function getDefaultTracerManager(): TracerManager {
-  if (!defaultTracerManager) {
-    defaultTracerManager = new TracerManager();
-  }
+  defaultTracerManager ??= new TracerManager();
   return defaultTracerManager;
 }

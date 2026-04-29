@@ -191,9 +191,7 @@ export class AnthropicInstrumentation {
     async function* wrappedStream(): AsyncGenerator<MessageStreamEvent> {
       try {
         for await (const chunk of stream) {
-          if (timeToFirstTokenMs === undefined) {
-            timeToFirstTokenMs = Date.now() - startTime;
-          }
+          timeToFirstTokenMs ??= Date.now() - startTime;
           chunkCount++;
           accumulatedEvents.push(chunk);
           if (chunk.type === 'message_start') {

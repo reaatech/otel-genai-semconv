@@ -2,7 +2,8 @@
  * Langfuse exporter for LLM traces
  */
 
-import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
+import { SpanExporter } from '@opentelemetry/sdk-trace-base';
+import type { ReadableSpan } from '@opentelemetry/sdk-trace-base';
 
 const ExportResultCode = { SUCCESS: 0, FAILED: 1 } as const;
 const SpanStatusCode = { UNSET: 0, OK: 1, ERROR: 2 } as const;
@@ -59,7 +60,7 @@ export class LangfuseExporter implements SpanExporter {
     return this.spans.map((span) => ({
       traceId: span.spanContext().traceId,
       observationId: span.spanContext().spanId,
-      parentObservationId: span.parentSpanId,
+      parentObservationId: span.parentSpanContext?.spanId,
       name: span.name,
       startTime: this.hrTimeToDate(span.startTime).toISOString(),
       endTime: this.hrTimeToEndDate(span.startTime, span.duration).toISOString(),

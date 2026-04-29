@@ -265,8 +265,6 @@ let defaultPIIRedactor: PIIRedactor | null = null;
  * Get the default PII redactor instance
  */
 export function getDefaultPIIRedactor(): PIIRedactor {
-  if (!defaultPIIRedactor) {
-    defaultPIIRedactor = new PIIRedactor();
-  }
+  defaultPIIRedactor ??= new PIIRedactor();
   return defaultPIIRedactor;
 }

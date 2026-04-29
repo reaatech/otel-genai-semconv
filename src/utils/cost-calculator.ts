@@ -131,9 +131,7 @@ export class CostCalculator {
     const grouped: Record<string, Record<string, PricingInfo>> = {};
     for (const [model, pricing] of Object.entries(flatPricing)) {
       const provider = pricing.provider ?? 'unknown';
-      if (!grouped[provider]) {
-        grouped[provider] = {};
-      }
+      grouped[provider] ??= {};
       grouped[provider][model] = pricing;
     }
     return grouped;
@@ -173,9 +171,7 @@ export class CostCalculator {
    */
   setCustomPricing(model: string, pricing: PricingInfo): void {
     const provider = pricing.provider ?? 'unknown';
-    if (!this.customPricing[provider]) {
-      this.customPricing[provider] = {};
-    }
+    this.customPricing[provider] ??= {};
     this.customPricing[provider][model] = pricing;
     this.cache.clear();
   }
@@ -186,9 +182,7 @@ export class CostCalculator {
   setCustomPricingBatch(pricing: Record<string, PricingInfo>): void {
     for (const [model, info] of Object.entries(pricing)) {
       const provider = info.provider ?? 'unknown';
-      if (!this.customPricing[provider]) {
-        this.customPricing[provider] = {};
-      }
+      this.customPricing[provider] ??= {};
       this.customPricing[provider][model] = info;
     }
     this.cache.clear();
@@ -233,8 +227,6 @@ let defaultCostCalculator: CostCalculator | null = null;
  * Get the default cost calculator instance
  */
 export function getDefaultCostCalculator(): CostCalculator {
-  if (!defaultCostCalculator) {
-    defaultCostCalculator = new CostCalculator();
-  }
+  defaultCostCalculator ??= new CostCalculator();
   return defaultCostCalculator;
 }

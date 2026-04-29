@@ -228,8 +228,6 @@ let defaultTokenCounter: TokenCounter | null = null;
  * Get the default token counter instance
  */
 export function getDefaultTokenCounter(): TokenCounter {
-  if (!defaultTokenCounter) {
-    defaultTokenCounter = new TokenCounter();
-  }
+  defaultTokenCounter ??= new TokenCounter();
   return defaultTokenCounter;
 }

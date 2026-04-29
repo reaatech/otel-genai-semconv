@@ -7,7 +7,7 @@ import {
   PeriodicExportingMetricReader,
   ConsoleMetricExporter,
 } from '@opentelemetry/sdk-metrics';
-import { Resource } from '@opentelemetry/resources';
+import { resourceFromAttributes } from '@opentelemetry/resources';
 import { SEMRESATTRS_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 
 /**
@@ -41,7 +41,7 @@ export interface MetricsConfig {
 export function initMetrics(config: MetricsConfig = {}): MeterProvider {
   const { serviceName = 'otel-genai-semconv', exportIntervalMs = 60000 } = config;
 
-  const resource = new Resource({
+  const resource = resourceFromAttributes({
     [SEMRESATTRS_SERVICE_NAME]: serviceName,
   });
 

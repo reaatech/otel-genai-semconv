@@ -2,7 +2,8 @@
  * GCP Cloud Trace exporter for LLM traces
  */
 
-import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
+import { SpanExporter } from '@opentelemetry/sdk-trace-base';
+import type { ReadableSpan } from '@opentelemetry/sdk-trace-base';
 
 const ExportResultCode = { SUCCESS: 0, FAILED: 1 } as const;
 
@@ -74,7 +75,7 @@ export class CloudTraceExporter implements SpanExporter {
       projectId: this.config.projectId,
       traceId: span.spanContext().traceId,
       spanId: span.spanContext().spanId,
-      parentSpanId: span.parentSpanId ?? '',
+      parentSpanId: span.parentSpanContext?.spanId ?? '',
       name: span.name,
       startTime: this.hrTimeToDate(span.startTime).toISOString(),
       endTime: this.hrTimeToEndDate(span.startTime, span.duration).toISOString(),

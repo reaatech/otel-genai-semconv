@@ -240,8 +240,6 @@ let defaultHookManager: HookManager | null = null;
  * Get the default hook manager instance
  */
 export function getDefaultHookManager(): HookManager {
-  if (!defaultHookManager) {
-    defaultHookManager = new HookManager();
-  }
+  defaultHookManager ??= new HookManager();
   return defaultHookManager;
 }

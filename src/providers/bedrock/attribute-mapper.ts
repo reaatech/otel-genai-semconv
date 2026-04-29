@@ -116,8 +116,8 @@ export function mapBedrockResponse(responseBody: string, modelId: string): Recor
           ];
         }
         if (response.usage) {
-          attributes[GEN_AI_ATTRIBUTES.USAGE_INPUT_TOKENS] = response.usage.input_tokens || 0;
-          attributes[GEN_AI_ATTRIBUTES.USAGE_OUTPUT_TOKENS] = response.usage.output_tokens || 0;
+          attributes[GEN_AI_ATTRIBUTES.USAGE_INPUT_TOKENS] = response.usage.input_tokens ?? 0;
+          attributes[GEN_AI_ATTRIBUTES.USAGE_OUTPUT_TOKENS] = response.usage.output_tokens ?? 0;
         }
         break;
 

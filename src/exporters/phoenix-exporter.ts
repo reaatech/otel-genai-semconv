@@ -2,7 +2,8 @@
  * Arize Phoenix exporter for LLM traces
  */
 
-import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
+import { SpanExporter } from '@opentelemetry/sdk-trace-base';
+import type { ReadableSpan } from '@opentelemetry/sdk-trace-base';
 
 const ExportResultCode = { SUCCESS: 0, FAILED: 1 } as const;
 
@@ -65,7 +66,7 @@ export class PhoenixExporter implements SpanExporter {
     return this.spans.map((span) => ({
       trace_id: span.spanContext().traceId,
       span_id: span.spanContext().spanId,
-      parent_span_id: span.parentSpanId,
+      parent_span_id: span.parentSpanContext?.spanId,
       name: span.name,
       start_time: this.hrTimeToMs(span.startTime),
       end_time:
