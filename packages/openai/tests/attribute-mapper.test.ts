@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { mapOpenAIRequest, mapOpenAIResponse } from '../src/index.js';
 
 describe('OpenAI Attribute Mappers', () => {

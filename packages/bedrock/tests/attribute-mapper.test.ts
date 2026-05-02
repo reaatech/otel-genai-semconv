@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { mapBedrockRequest, mapBedrockResponse } from '../src/index.js';
 
 describe('Bedrock Attribute Mappers', () => {

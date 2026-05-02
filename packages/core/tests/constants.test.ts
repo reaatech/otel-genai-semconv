@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { GEN_AI_ATTRIBUTES, GEN_AI_EVENTS, ERROR_TYPES, FINISH_REASONS } from '../src/index.js';
+import { describe, expect, it } from 'vitest';
+import { ERROR_TYPES, FINISH_REASONS, GEN_AI_ATTRIBUTES, GEN_AI_EVENTS } from '../src/index.js';
 
 describe('@reaatech/otel-genai-semconv-core', () => {
   it('should export GenAI attribute constants', () => {
