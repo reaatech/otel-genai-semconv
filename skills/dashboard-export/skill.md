@@ -1,55 +1,38 @@
 # Dashboard Export
 
 ## Capability
-Export telemetry data to Phoenix, Langfuse, and Cloud Trace with pre-built dashboards.
+Export telemetry data to Phoenix, Langfuse, and Cloud Trace using the OTel span exporters from `@reaatech/otel-genai-semconv-exporters`.
 
 ## Usage Examples
 
 ### Example 1: Phoenix Export
 ```typescript
-import { PhoenixExporter } from 'otel-genai-semconv/phoenix';
+import { PhoenixExporter } from '@reaatech/otel-genai-semconv-exporters';
 
 const exporter = new PhoenixExporter({
   endpoint: process.env.PHOENIX_ENDPOINT || 'http://localhost:6006',
   datasetName: 'llm-traces',
 });
-
-await exporter.export({
-  traces: spanData,
-  embeddings: embeddingVectors, // Optional
-  metadata: { model: 'v2', date: new Date().toISOString() },
-});
 ```
 
 ### Example 2: Langfuse Export
 ```typescript
-import { LangfuseExporter } from 'otel-genai-semconv/langfuse';
+import { LangfuseExporter } from '@reaatech/otel-genai-semconv-exporters';
 
 const exporter = new LangfuseExporter({
   publicKey: process.env.LANGFUSE_PUBLIC_KEY,
   secretKey: process.env.LANGFUSE_SECRET_KEY,
   baseUrl: process.env.LANGFUSE_BASE_URL || 'https://cloud.langfuse.com',
 });
-
-await exporter.export({
-  traces: spanData,
-  traceName: 'llm-evaluation',
-  sessionId: `eval-${Date.now()}`,
-});
 ```
 
 ### Example 3: Cloud Trace Export
 ```typescript
-import { CloudTraceExporter } from 'otel-genai-semconv/cloud-trace';
+import { CloudTraceExporter } from '@reaatech/otel-genai-semconv-exporters';
 
 const exporter = new CloudTraceExporter({
   projectId: process.env.GOOGLE_CLOUD_PROJECT,
   serviceName: 'my-llm-app',
-});
-
-await exporter.export({
-  traces: spanData,
-  attributes: { environment: 'production' },
 });
 ```
 
@@ -79,7 +62,7 @@ await exporter.export({
 
 ## Error Handling
 - **Network error**: Retry with exponential backoff
-- **Authentication error**: Log error, skip export, continue
+- **Authentication error**: Log error, skip export
 - **Rate limit**: Queue for later, respect retry-after header
 - **Invalid data**: Log warning, skip invalid traces
 
@@ -94,3 +77,8 @@ await exporter.export({
 - Batch processing for efficiency
 - Configurable batch size and interval
 - Memory-efficient streaming for large datasets
+
+## Related Packages
+
+- [@reaatech/otel-genai-semconv-core](https://www.npmjs.com/package/@reaatech/otel-genai-semconv-core) — Core types
+- [@reaatech/otel-genai-semconv-observability](https://www.npmjs.com/package/@reaatech/otel-genai-semconv-observability) — OTel SDK setup

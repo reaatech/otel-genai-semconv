@@ -1,36 +1,26 @@
-/**
- * Streaming instrumentation example
- * 
- * This example demonstrates how to instrument streaming LLM calls
- * with otel-genai-semconv.
- */
-
-import { NodeSDK } from '@opentelemetry/sdk-node';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
-import { OpenAIInstrumentation } from 'otel-genai-semconv/openai';
+import { NodeSDK } from '@opentelemetry/sdk-node';
+import { OpenAIInstrumentation } from '@reaatech/otel-genai-semconv-openai';
 import OpenAI from 'openai';
 
-// Initialize OTel SDK
 const sdk = new NodeSDK({
   traceExporter: new OTLPTraceExporter({
     url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:4318/v1/traces',
   }),
-  instrumentations: [
-    new OpenAIInstrumentation({
-      trackCosts: true,
-      captureRequestHeaders: true,
-      captureResponseHeaders: true,
-    }),
-  ],
 });
 
 sdk.start();
 
-// Use OpenAI SDK with streaming
 async function main() {
   const client = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
   });
+
+  new OpenAIInstrumentation({
+    trackCosts: true,
+    captureRequestHeaders: true,
+    captureResponseHeaders: true,
+  }).instrument(client);
 
   const stream = await client.chat.completions.create({
     model: 'gpt-4',
@@ -43,7 +33,6 @@ async function main() {
     stream: true,
   });
 
-  // Process streaming chunks
   let fullResponse = '';
   for await (const chunk of stream) {
     const content = chunk.choices[0]?.delta?.content || '';

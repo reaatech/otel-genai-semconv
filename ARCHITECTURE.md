@@ -2,6 +2,48 @@
 
 ## System Overview
 
+This is a **pnpm monorepo** with 9 independently installable packages under the `@reaatech` scope. The package dependency graph is layered: foundation packages (`core`) have no internal deps, utility packages (`utils`, `observability`) depend only on `core`, the instrumentation framework depends on utilities, provider packages depend on the framework, and exporters sit at the top.
+
+```
+packages/
+├── core/               # @reaatech/otel-genai-semconv-core (types, constants, schemas, span builder)
+├── instrumentation/    # @reaatech/otel-genai-semconv-instrumentation (tracer, hooks, streaming, retry, circuit breaker)
+├── observability/      # @reaatech/otel-genai-semconv-observability (logging, OTel SDK, metrics, health checks)
+├── utils/              # @reaatech/otel-genai-semconv-utils (token counting, cost calculation, PII redaction)
+├── exporters/          # @reaatech/otel-genai-semconv-exporters (Phoenix, Langfuse, Cloud Trace)
+├── openai/             # @reaatech/otel-genai-semconv-openai (OpenAI SDK instrumentation)
+├── anthropic/          # @reaatech/otel-genai-semconv-anthropic (Anthropic SDK instrumentation)
+├── vertexai/           # @reaatech/otel-genai-semconv-vertexai (Vertex AI SDK instrumentation)
+└── bedrock/            # @reaatech/otel-genai-semconv-bedrock (Bedrock SDK instrumentation)
+```
+
+### Dependency Graph
+
+```
+core
+├── utils (depends on core)
+├── observability (depends on core)
+│   └── exporters (depends on core, observability)
+├── instrumentation (depends on core, utils, observability)
+│   ├── openai (depends on core, instrumentation, utils; peer:openai)
+│   ├── anthropic (depends on core, instrumentation, utils; peer:@anthropic-ai/sdk)
+│   ├── vertexai (depends on core, instrumentation, utils; peer:@google-ai/generativelanguage)
+│   └── bedrock (depends on core, instrumentation, utils; peer:@aws-sdk/client-bedrock-runtime)
+```
+
+### Tooling
+
+- **pnpm** — workspace package manager (`pnpm-workspace.yaml`)
+- **turbo** — monorepo task orchestration (`turbo.json`)
+- **tsup** — dual ESM/CJS bundling per package
+- **biome** — linting and formatting (`biome.json`)
+- **changesets** — versioning and changelog generation (`.changeset/`)
+- **vitest** — testing per package
+
+---
+
+## Data Flow
+
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                              Client Layer                                │
@@ -13,11 +55,12 @@
 │         └───────────────────┼───────────────────┘                         │
 │                             │                                               │
 └─────────────────────────────┼─────────────────────────────────────────────┘
-                              ▼
+                               ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                      Instrumentation Layer                               │
 │  ┌──────────────────────────────────────────────────────────────────┐   │
 │  │                    Provider Wrappers                              │   │
+│  │  packages/{openai,anthropic,vertexai,bedrock}/                    │   │
 │  │                                                                   │   │
 │  │  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐           │   │
 │  │  │   OpenAI    │    │  Anthropic  │    │  Vertex AI  │           │   │
@@ -32,9 +75,10 @@
 │  │                   └─────────────┘                                 │   │
 │  └──────────────────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────────────┘
-                              ▼
+                               ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                       Semantic Convention Core                           │
+│  packages/core/                                                          │
 │  ┌──────────────────────────────────────────────────────────────────┐   │
 │  │                   Span Attribute Mapper                           │   │
 │  │                                                                   │   │
@@ -45,7 +89,7 @@
 │  │  └─────────────┘    └─────────────┘    └─────────────┘           │   │
 │  └──────────────────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────────────┘
-                              ▼
+                               ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                        LLM Provider APIs                                 │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐    │
@@ -53,9 +97,10 @@
 │  │    API      │  │     API     │  │     AI      │  │     API     │    │
 │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘    │
 └─────────────────────────────────────────────────────────────────────────┘
-                              ▼
+                               ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                       Cross-Cutting Concerns                             │
+│  packages/{utils,instrumentation}/                                       │
 │  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐       │
 │  │  Token Counting  │  │   Cost Tracking  │  │    PII Redaction │       │
 │  │  - tiktoken      │  │  - Per-provider  │  │  - Auto redact   │       │
@@ -63,15 +108,16 @@
 │  │  - Estimation    │  │  - Budget alerts │  │  - Compliance    │       │
 │  └──────────────────┘  └──────────────────┘  └──────────────────┘       │
 └─────────────────────────────────────────────────────────────────────────┘
-                              ▼
+                               ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                          Exporters                                       │
+│  packages/exporters/                                                     │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐    │
 │  │   OTLP      │  │   Phoenix   │  │   Langfuse  │  │ Cloud Trace │    │
 │  │  Exporter   │  │  Exporter   │  │  Exporter   │  │  Exporter   │    │
 │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘    │
 └─────────────────────────────────────────────────────────────────────────┘
-                              ▼
+                               ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                     Observability Backends                               │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐    │
@@ -126,22 +172,11 @@ Each provider wrapper instruments the SDK and captures telemetry:
 
 ```typescript
 interface ProviderInstrumentation {
-  // Wrap the provider's client
   instrument(client: ProviderClient): void;
-  
-  // Remove instrumentation (cleanup)
   uninstrument(client: ProviderClient): void;
-  
-  // Capture request attributes
   captureRequest(span: Span, request: Request): void;
-  
-  // Capture response attributes
   captureResponse(span: Span, response: Response): void;
-  
-  // Handle errors
   captureError(span: Span, error: Error): void;
-  
-  // Handle streaming
   handleStreaming(span: Span, stream: Stream): void;
 }
 ```
@@ -231,10 +266,10 @@ interface CostParams {
 }
 
 interface CostResult {
-  total: number;      // Total cost in USD
-  input: number;      // Input token cost
-  output: number;     // Output token cost
-  currency: string;   // Currency code (default: USD)
+  total: number;
+  input: number;
+  output: number;
+  currency: string;
 }
 ```
 
@@ -257,17 +292,12 @@ class SpanBuilder {
         ...this.getRequestAttributes(context.request),
       },
     });
-    
-    // Add events
+
     this.addMessageEvents(span, context.messages);
     this.addChoiceEvents(span, context.choices);
-    
-    // Add token usage
     this.addTokenUsageEvent(span, context.usage);
-    
-    // Set status
     this.setStatus(span, context.response, context.error);
-    
+
     return span;
   }
 }
@@ -297,14 +327,12 @@ gen_ai.chat.completion [span]
 
 ---
 
-## Data Flow
-
-### Complete Instrumentation Flow
+## Complete Instrumentation Flow
 
 ```
 1. Application calls LLM provider SDK
         │
-2. Instrumentation wrapper intercepts call
+2. Provider wrapper intercepts call
         │
 3. Create OTel span with request attributes:
    - Model name
@@ -374,23 +402,15 @@ gen_ai.chat.completion [span]
 
 ### PII Redaction
 
-Automatic PII detection and redaction using safe regex patterns (no stateful `.test()` with `g` flag):
+Automatic PII detection and redaction using safe regex patterns:
 
 ```typescript
 class PIIRedactor {
   redact(text: string): string {
-    // Email addresses
     text = text.replace(/[\w.-]+@[\w.-]+\.\w+/g, '[REDACTED_EMAIL]');
-    
-    // Phone numbers
     text = text.replace(/\+?[\d\s-()]{10,}/g, '[REDACTED_PHONE]');
-    
-    // SSN
     text = text.replace(/\b\d{3}-\d{2}-\d{4}\b/g, '[REDACTED_SSN]');
-    
-    // Credit cards
     text = text.replace(/\b\d{13,19}\b/g, '[REDACTED_CC]');
-    
     return text;
   }
 }
@@ -405,30 +425,6 @@ class PIIRedactor {
 ---
 
 ## Deployment Architecture
-
-### GCP Cloud Run
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         Cloud Run Service                            │
-│  ┌─────────────────────────────────────────────────────────────┐    │
-│  │                 otel-genai-semconv Container                 │    │
-│  │  ┌───────────┐  ┌───────────┐  ┌───────────┐                │    │
-│  │  │  Instru-  │  │  OTel     │  │ Secrets   │                │    │
-│  │  │ mentation │  │ Sidecar  │  │ Mounted   │                │    │
-│  │  └───────────┘  └───────────┘  └───────────┘                │    │
-│  └─────────────────────────────────────────────────────────────┘    │
-│                                                                      │
-│  Config:                                                             │
-│  - Min instances: 0 (scale to zero)                                 │
-│  - Max instances: 10 (configurable)                                 │
-│  - Memory: 512MB, CPU: 1 vCPU                                       │
-│  - Timeout: 60s (configurable)                                      │
-│                                                                      │
-│  Secrets: Secret Manager → mounted as env vars                       │
-│  Observability: OTel → Cloud Monitoring / Jaeger                     │
-└─────────────────────────────────────────────────────────────────────┘
-```
 
 ### Self-Hosted with OTel Collector
 
@@ -451,55 +447,13 @@ class PIIRedactor {
                        └──────────────────┘
 ```
 
----
+### Docker Compose (included)
 
-## Observability
-
-### Tracing
-
-Every LLM call generates a trace with detailed spans:
-
-| Span Name | Attributes | Events |
-|-----------|------------|--------|
-| `gen_ai.chat.completion` | model, temperature, max_tokens, etc. | system.message, user.message, assistant.message, choice, usage |
-| `gen_ai.embedding` | model, dimensions, input | embedding |
-| `gen_ai.tool_call` | tool_name, tool_input, tool_output | tool_call, tool_result |
-
-### Metrics
-
-The instrumentation exports these OTel metrics:
-
-| Metric | Type | Labels | Description |
-|--------|------|--------|-------------|
-| `genai.requests.total` | Counter | `provider`, `model`, `status` | Total LLM requests |
-| `genai.request.duration_ms` | Histogram | `provider`, `model` | Request latency |
-| `genai.tokens.input` | Counter | `provider`, `model` | Input tokens used |
-| `genai.tokens.output` | Counter | `provider`, `model` | Output tokens generated |
-| `genai.cost.total` | Histogram | `provider`, `model` | Cost per request |
-| `genai.errors.total` | Counter | `provider`, `error_type` | Error count by type |
-| `genai.streaming.time_to_first_token_ms` | Histogram | `provider`, `model` | Streaming latency |
-
-### Logging
-
-All instrumentation events are logged with structured context:
-
-```json
-{
-  "timestamp": "2026-04-15T23:00:00Z",
-  "service": "my-llm-app",
-  "trace_id": "abc123",
-  "span_id": "def456",
-  "level": "info",
-  "message": "LLM request completed",
-  "provider": "openai",
-  "model": "gpt-4",
-  "input_tokens": 50,
-  "output_tokens": 100,
-  "cost_usd": 0.0045,
-  "duration_ms": 1234,
-  "status": "OK"
-}
-```
+The repo includes a `docker/docker-compose.yml` with:
+- **otel-collector** — OTLP gRPC and HTTP endpoints
+- **jaeger** — Trace storage and UI
+- **phoenix** — LLM observability dashboard
+- **example-app** — Instrumented example application
 
 ---
 
@@ -514,15 +468,13 @@ All instrumentation events are logged with structured context:
 | PII redaction failure | Regex error | Log error, continue without redaction |
 | Span creation failure | OTel SDK error | Log error, continue without tracing |
 | Memory pressure | High memory usage | Reduce batch size, increase export frequency |
-| Streaming error | Error during `next()` | Properly call `handler.error()`, finalize span with error status |
+| Streaming error | Error during `next()` | Call `handler.error()`, finalize span with error status |
 
 ---
 
 ## Performance Considerations
 
 ### Latency Impact
-
-The instrumentation adds minimal latency:
 
 | Operation | Added Latency |
 |-----------|---------------|
@@ -537,16 +489,12 @@ The instrumentation adds minimal latency:
 
 ### Memory Usage
 
-Memory-efficient design:
-
 - Span buffering with configurable batch size
 - LRU cache for token counts (max 10000 entries)
 - Streaming chunk aggregation with limits
 - Automatic cleanup of completed spans
 
 ### CPU Usage
-
-Minimal CPU impact:
 
 - Async processing where possible
 - Efficient regex patterns for PII redaction
@@ -560,6 +508,6 @@ Minimal CPU impact:
 - **AGENTS.md** — Agent development guide
 - **DEV_PLAN.md** — Development checklist
 - **README.md** — Quick start and overview
+- **CONTRIBUTING.md** — Contribution workflow and release process
 - **docs/SEMCONV_REFERENCE.md** — Complete semantic convention reference
 - **OpenTelemetry GenAI Spec** — https://opentelemetry.io/docs/specs/semconv/gen-ai/
-- **MCP Specification** — https://modelcontextprotocol.io/

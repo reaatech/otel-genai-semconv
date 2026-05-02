@@ -7,13 +7,15 @@ This skill provides instrumentation for Anthropic SDK calls, capturing OTel GenA
 ## Usage
 
 ```typescript
-import { AnthropicInstrumentation } from 'otel-genai-semconv/anthropic';
+import { AnthropicInstrumentation } from '@reaatech/otel-genai-semconv-anthropic';
 
 const instrumentation = new AnthropicInstrumentation({
   trackCosts: true,
   captureRequestHeaders: true,
   captureResponseHeaders: true,
 });
+
+instrumentation.instrument(anthropicClient);
 ```
 
 ## Captured Attributes
@@ -35,4 +37,34 @@ const instrumentation = new AnthropicInstrumentation({
 
 ## Token Counting
 
-Uses Anthropic's token counting API with fallback estimation when unavailable.
+Uses estimation-based token counting with caching for performance:
+
+```typescript
+import { AnthropicTokenCounter } from '@reaatech/otel-genai-semconv-anthropic';
+
+const counter = new AnthropicTokenCounter();
+const tokens = counter.countTokens('Hello, world!', 'claude-3-opus-20240229');
+```
+
+## Streaming Support
+
+The instrumentation automatically handles Anthropic's streaming API via `stream: true`:
+
+```typescript
+const stream = await anthropic.messages.create({
+  model: 'claude-3-opus-20240229',
+  max_tokens: 500,
+  messages: [{ role: 'user', content: 'Write a haiku' }],
+  stream: true,
+});
+
+for await (const event of stream) {
+  // Instrumentation tracks TTFT, chunk count, and aggregates deltas
+}
+```
+
+## Related Packages
+
+- [@reaatech/otel-genai-semconv-core](https://www.npmjs.com/package/@reaatech/otel-genai-semconv-core) — Core types and constants
+- [@reaatech/otel-genai-semconv-instrumentation](https://www.npmjs.com/package/@reaatech/otel-genai-semconv-instrumentation) — Instrumentation framework
+- [@reaatech/otel-genai-semconv-utils](https://www.npmjs.com/package/@reaatech/otel-genai-semconv-utils) — Cost calculator

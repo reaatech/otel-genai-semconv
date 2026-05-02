@@ -1,86 +1,21 @@
 {
   "name": "otel-genai-semconv",
   "version": "0.1.0",
-  "description": "Reference implementation of OpenTelemetry GenAI semantic conventions with instrumented wrappers for major LLM providers",
-  "author": "Rick Somers <rick@reaatech.com> (https://reaatech.com)",
-  "license": "MIT",
+  "private": true,
+  "description": "OpenTelemetry semantic conventions for GenAI observability — instrumented wrappers for major LLM providers",
   "type": "module",
-  "main": "./dist/src/index.js",
-  "types": "./dist/src/index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/src/index.js",
-      "types": "./dist/src/index.d.ts"
-    },
-    "./openai": {
-      "import": "./dist/src/providers/openai/index.js",
-      "types": "./dist/src/providers/openai/index.d.ts"
-    },
-    "./anthropic": {
-      "import": "./dist/src/providers/anthropic/index.js",
-      "types": "./dist/src/providers/anthropic/index.d.ts"
-    },
-    "./vertexai": {
-      "import": "./dist/src/providers/vertexai/index.js",
-      "types": "./dist/src/providers/vertexai/index.d.ts"
-    },
-    "./bedrock": {
-      "import": "./dist/src/providers/bedrock/index.js",
-      "types": "./dist/src/providers/bedrock/index.d.ts"
-    },
-    "./instrumentation": {
-      "import": "./dist/src/instrumentation/index.js",
-      "types": "./dist/src/instrumentation/index.d.ts"
-    },
-    "./providers": {
-      "import": "./dist/src/providers/index.js",
-      "types": "./dist/src/providers/index.d.ts"
-    },
-    "./phoenix": {
-      "import": "./dist/src/exporters/phoenix-exporter.js",
-      "types": "./dist/src/exporters/phoenix-exporter.d.ts"
-    },
-    "./langfuse": {
-      "import": "./dist/src/exporters/langfuse-exporter.js",
-      "types": "./dist/src/exporters/langfuse-exporter.d.ts"
-    },
-    "./cloud-trace": {
-      "import": "./dist/src/exporters/cloud-trace-exporter.js",
-      "types": "./dist/src/exporters/cloud-trace-exporter.d.ts"
-    },
-    "./utils": {
-      "import": "./dist/src/utils/index.js",
-      "types": "./dist/src/utils/index.d.ts"
-    },
-    "./exporters": {
-      "import": "./dist/src/exporters/index.js",
-      "types": "./dist/src/exporters/index.d.ts"
-    },
-    "./observability": {
-      "import": "./dist/src/observability/index.js",
-      "types": "./dist/src/observability/index.d.ts"
-    }
-  },
-  "files": [
-    "dist",
-    "dashboards",
-    "README.md",
-    "LICENSE"
-  ],
   "scripts": {
-    "build": "tsc",
-    "clean": "rm -rf dist",
-    "dev": "tsc --watch",
-    "lint": "eslint src tests",
-    "lint:fix": "eslint src tests --fix",
-    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\" \"*.json\" \"*.yaml\" \"*.yml\" examples/**/*.json",
-    "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\" \"*.json\" \"*.yaml\" \"*.yml\" examples/**/*.json",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
-    "prepare": "node -e \"try { require('child_process').execSync('git rev-parse --git-dir', {stdio: 'ignore'}); require('child_process').execSync('husky', {stdio: 'inherit'}); } catch {}\"",
-    "prepublishOnly": "npm run clean && npm run build"
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "test:coverage": "turbo run test:coverage",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "typecheck": "tsc --noEmit -p tsconfig.typecheck.json",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "turbo run build && changeset publish"
   },
   "keywords": [
     "opentelemetry",
@@ -95,72 +30,25 @@
     "vertex-ai",
     "bedrock"
   ],
+  "author": "Rick Somers <rick@reaatech.com> (https://reaatech.com)",
+  "license": "MIT",
+  "packageManager": "pnpm@10.22.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/reaatech/otel-genai-semconv.git"
   },
-  "homepage": "https://github.com/reaatech/otel-genai-semconv#readme",
   "bugs": {
     "url": "https://github.com/reaatech/otel-genai-semconv/issues"
   },
-  "dependencies": {
-    "@opentelemetry/api": "^1.9.0",
-    "@opentelemetry/core": "^2.7.0",
-    "@opentelemetry/exporter-trace-otlp-http": "^0.51.0",
-    "@opentelemetry/resources": "^2.7.0",
-    "@opentelemetry/sdk-metrics": "^2.7.0",
-    "@opentelemetry/sdk-node": "^0.51.0",
-    "@opentelemetry/sdk-trace-base": "^2.7.0",
-    "@opentelemetry/semantic-conventions": "^1.24.0",
-    "pino": "^10.3.1",
-    "pino-pretty": "^13.1.3",
-    "tiktoken": "^1.0.13",
-    "zod": "^3.22.4"
-  },
+  "homepage": "https://github.com/reaatech/otel-genai-semconv#readme",
   "devDependencies": {
-    "@anthropic-ai/sdk": "^0.18.0",
-    "@aws-sdk/client-bedrock-runtime": "^3.500.0",
-    "@eslint/eslintrc": "^3.3.5",
-    "@eslint/js": "^10.0.1",
-    "@google-ai/generativelanguage": "^3.7.0",
-    "@opentelemetry/exporter-jaeger": "^2.7.0",
+    "@biomejs/biome": "^1.9.4",
+    "@changesets/changelog-github": "^0.6.0",
+    "@changesets/cli": "^2.28.1",
     "@types/node": "^25.6.0",
-    "@typescript-eslint/eslint-plugin": "^8.59.1",
-    "@typescript-eslint/parser": "^8.59.1",
-    "@vitest/coverage-v8": "^1.6.0",
-    "eslint": "^10.2.1",
-    "husky": "^9.0.11",
-    "lint-staged": "^15.2.2",
-    "openai": "^4.28.0",
-    "prettier": "^3.2.5",
-    "typescript": "^6.0.3",
-    "vitest": "^1.6.0"
-  },
-  "peerDependencies": {
-    "@anthropic-ai/sdk": ">=0.18.0",
-    "@aws-sdk/client-bedrock-runtime": ">=3.500.0",
-    "@google-ai/generativelanguage": ">=2.0.0",
-    "openai": ">=4.28.0"
-  },
-  "peerDependenciesMeta": {
-    "@anthropic-ai/sdk": {
-      "optional": true
-    },
-    "@aws-sdk/client-bedrock-runtime": {
-      "optional": true
-    },
-    "@google-ai/generativelanguage": {
-      "optional": true
-    },
-    "openai": {
-      "optional": true
-    }
-  },
-  "overrides": {
-    "@tootallnate/once": "^3.0.1",
-    "esbuild": "^0.28.0"
-  },
-  "engines": {
-    "node": ">=18.0.0"
+    "@vitest/coverage-v8": "3.2.4",
+    "turbo": "^2.5.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.1"
   }
 }

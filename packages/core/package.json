@@ -1,0 +1,43 @@
+{
+  "name": "@reaatech/otel-genai-semconv-core",
+  "version": "0.1.0",
+  "description": "OTel GenAI semantic convention constants, types, and span builder",
+  "license": "MIT",
+  "author": "Rick Somers <rick@reaatech.com> (https://reaatech.com)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/reaatech/otel-genai-semconv.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/reaatech/otel-genai-semconv/tree/main/packages/core#readme",
+  "bugs": { "url": "https://github.com/reaatech/otel-genai-semconv/issues" },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": ["dist"],
+  "publishConfig": { "access": "public" },
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/semantic-conventions": "^1.24.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.1"
+  }
+}

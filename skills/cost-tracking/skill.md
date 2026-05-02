@@ -1,13 +1,13 @@
 # Cost Tracking
 
 ## Capability
-Real-time cost calculation and tracking for LLM API usage across all providers.
+Real-time cost calculation and tracking for LLM API usage across all providers, provided by `@reaatech/otel-genai-semconv-utils`.
 
 ## Usage Examples
 
 ### Example 1: Calculate Cost
 ```typescript
-import { CostCalculator } from 'otel-genai-semconv/utils';
+import { CostCalculator } from '@reaatech/otel-genai-semconv-utils';
 
 const calculator = new CostCalculator();
 
@@ -26,7 +26,7 @@ console.log(`Total cost: $${cost.total.toFixed(6)}`);
 ```typescript
 const calculator = new CostCalculator({
   customPricing: {
-    'gpt-4': { input: 0.03, output: 0.06 }, // per 1K tokens
+    'gpt-4': { input: 0.03, output: 0.06 },
     'claude-opus': { input: 0.015, output: 0.075 },
   },
 });
@@ -35,9 +35,9 @@ const calculator = new CostCalculator({
 ## Pricing Data
 | Provider | Models Covered | Update Frequency |
 |----------|----------------|------------------|
-| OpenAI | All models | On pricing change |
-| Anthropic | All models | On pricing change |
-| Google Vertex AI | All models | On pricing change |
+| OpenAI | GPT-4, GPT-4 Turbo, GPT-4o, GPT-3.5 | On pricing change |
+| Anthropic | Claude 3 Opus/Sonnet/Haiku | On pricing change |
+| Google Vertex AI | Gemini Pro/Flash | On pricing change |
 | AWS Bedrock | All model families | On pricing change |
 
 ## Cost Attributes in Spans
@@ -47,7 +47,7 @@ const calculator = new CostCalculator({
 - `llm.cost.currency` — Currency code (default: USD)
 
 ## Error Handling
-- **Unknown model**: Falls back to default pricing, logs warning
+- **Unknown model**: Falls back to default pricing ($0.002/1K), logs warning
 - **Invalid token count**: Returns error with validation message
 - **Missing provider**: Returns error with supported providers list
 
@@ -62,3 +62,7 @@ const calculator = new CostCalculator({
 - Pricing data cached in memory
 - Batch processing for multiple calculations
 - Async updates for pricing data
+
+## Related Packages
+
+- [@reaatech/otel-genai-semconv-core](https://www.npmjs.com/package/@reaatech/otel-genai-semconv-core) — Core domain types (CostData, PricingInfo)

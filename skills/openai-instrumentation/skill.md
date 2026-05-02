@@ -7,13 +7,15 @@ This skill provides instrumentation for OpenAI SDK calls, capturing OTel GenAI s
 ## Usage
 
 ```typescript
-import { OpenAIInstrumentation } from 'otel-genai-semconv/openai';
+import { OpenAIInstrumentation } from '@reaatech/otel-genai-semconv-openai';
 
 const instrumentation = new OpenAIInstrumentation({
   trackCosts: true,
   captureRequestHeaders: true,
   captureResponseHeaders: true,
 });
+
+instrumentation.instrument(openaiClient);
 ```
 
 ## Captured Attributes
@@ -37,3 +39,18 @@ const instrumentation = new OpenAIInstrumentation({
 ## Token Counting
 
 Uses tiktoken library for accurate token counting with caching for performance.
+
+The `OpenAITokenCounter` is exported directly from `@reaatech/otel-genai-semconv-openai`:
+
+```typescript
+import { OpenAITokenCounter } from '@reaatech/otel-genai-semconv-openai';
+
+const counter = new OpenAITokenCounter();
+const tokens = counter.countTokens('Hello, world!', 'gpt-4');
+```
+
+## Related Packages
+
+- [@reaatech/otel-genai-semconv-core](https://www.npmjs.com/package/@reaatech/otel-genai-semconv-core) — Core types and constants
+- [@reaatech/otel-genai-semconv-instrumentation](https://www.npmjs.com/package/@reaatech/otel-genai-semconv-instrumentation) — Instrumentation framework
+- [@reaatech/otel-genai-semconv-utils](https://www.npmjs.com/package/@reaatech/otel-genai-semconv-utils) — Cost calculator and PII redaction
