@@ -6,17 +6,17 @@ This skill provides OpenTelemetry instrumentation for Google Vertex AI's Generat
 
 ## What It Does
 
-- Instruments `@google-cloud/vertexai` SDK calls
+- Instruments `@google-ai/generativelanguage` SDK calls
 - Captures request/response attributes per OTel GenAI semconv
-- Tracks token usage via Vertex AI's token counting API
+- Tracks token usage via Vertex AI's usage metadata
 - Calculates costs based on Vertex AI pricing
-- Handles streaming responses with proper span lifecycle
 - Maps Vertex AI-specific fields to standard OTel attributes
+- Provides lifecycle hooks for custom span attributes
 
 ## Usage
 
 ```typescript
-import { VertexAIInstrumentation } from 'otel-genai-semconv/vertexai';
+import { VertexAIInstrumentation } from '@reaatech/otel-genai-semconv-vertexai';
 
 const instrumentation = new VertexAIInstrumentation({
   captureRequestHeaders: true,
@@ -24,6 +24,12 @@ const instrumentation = new VertexAIInstrumentation({
   trackCosts: true,
   projectId: process.env.GOOGLE_CLOUD_PROJECT,
   location: process.env.GOOGLE_CLOUD_REGION || 'us-central1',
+});
+
+instrumentation.instrument(model);
+
+const response = await model.generateContent({
+  contents: [{ role: 'user', parts: [{ text: 'Hello' }] }],
 });
 ```
 
@@ -35,61 +41,48 @@ const instrumentation = new VertexAIInstrumentation({
 | `gen_ai.request.temperature` | Generation config temperature |
 | `gen_ai.request.max_tokens` | Generation config maxOutputTokens |
 | `gen_ai.request.top_p` | Generation config topP |
-| `gen_ai.response.model` | Model name from response |
+| `gen_ai.request.top_k` | Generation config topK |
+| `gen_ai.response.model` | Model version from response |
 | `gen_ai.usage.input_tokens` | usageMetadata.promptTokenCount |
 | `gen_ai.usage.output_tokens` | usageMetadata.candidatesTokenCount |
-| `gen_ai.response.finish_reasons` | candidates[].finishReason |
+| `gen_ai.response.finish_reasons` | candidates[].finishReason (mapped) |
 | `gcp.project_id` | GCP project for cost attribution |
+| `gcp.location` | GCP region |
 
 ## Events
 
 - `gen_ai.user.message` — User message content
 - `gen_ai.assistant.message` — Assistant response content
 - `gen_ai.choice` — Individual candidate responses
-- `gen_ai.usage` — Token usage summary
+- `gen_ai.system.message` — System instruction content
 
-## Streaming Support
+## Finish Reason Mapping
 
-The instrumentation automatically handles streaming responses:
-
-```typescript
-const stream = await model.generateContentStream({
-  contents: [{ role: 'user', parts: [{ text: 'Hello' }] }],
-});
-
-for await (const chunk of stream) {
-  // Instrumentation tracks:
-  // - Time to first token
-  // - Total streaming duration
-  // - Accumulated token count
-}
-```
+| Vertex AI | OTel |
+|-----------|------|
+| `STOP` | `stop` |
+| `MAX_TOKENS` | `length` |
+| `SAFETY` | `content_filter` |
+| `RECITATION` | `content_filter` |
+| `OTHER` | `unknown` |
 
 ## Cost Tracking
 
-Costs are calculated based on Vertex AI's published pricing:
+Costs are calculated using built-in pricing tables:
 
 - Gemini Pro: $0.00025/1K input tokens, $0.0005/1K output tokens
-- Gemini Ultra: Custom pricing (contact Google)
-
-## Error Handling
-
-The instrumentation captures Vertex AI-specific errors:
-
-- `INVALID_ARGUMENT` — Bad request parameters
-- `PERMISSION_DENIED` — Authentication/authorization issues
-- `NOT_FOUND` — Model not found
-- `RESOURCE_EXHAUSTED` — Rate limits or quotas
-- `INTERNAL` — Server errors
+- Gemini 1.5 Pro: $0.0025/1K input, $0.005/1K output
+- Gemini 1.5 Flash: $0.000075/1K input, $0.0003/1K output
 
 ## Best Practices
 
 1. **Set Project ID**: Always provide `projectId` for proper cost attribution
 2. **Use Regional Endpoints**: Set `location` to match your deployment region
 3. **Enable Cost Tracking**: Set `trackCosts: true` for budget monitoring
-4. **Monitor Quotas**: Vertex AI has strict quotas; watch for `RESOURCE_EXHAUSTED`
+4. **Monitor Quotas**: Vertex AI has strict quotas; watch for deadline exceeded errors
 
 ## References
 
 - [Vertex AI Documentation](https://cloud.google.com/vertex-ai/docs)
 - [OTel GenAI Spec](https://opentelemetry.io/docs/specs/semconv/gen-ai/)
+- [@reaatech/otel-genai-semconv-core](https://www.npmjs.com/package/@reaatech/otel-genai-semconv-core) — Core types and constants

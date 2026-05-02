@@ -1,211 +1,151 @@
 # otel-genai-semconv
 
-Reference implementation of the OpenTelemetry GenAI semantic conventions. Provides instrumented wrappers for OpenAI, Anthropic, Vertex AI, and AWS Bedrock that emit spec-compliant spans, plus deployable dashboards for Phoenix, Langfuse, and Cloud Trace.
+[![CI](https://github.com/reaatech/otel-genai-semconv/actions/workflows/ci.yml/badge.svg)](https://github.com/reaatech/otel-genai-semconv/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue)](https://www.typescriptlang.org/)
+
+> Reference implementation of the [OpenTelemetry GenAI semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/), providing instrumented wrappers for OpenAI, Anthropic, Vertex AI, and AWS Bedrock that emit spec-compliant spans, plus deployable dashboards for Phoenix, Langfuse, and Cloud Trace.
+
+This monorepo provides the core types, instrumentation framework, provider-specific wrappers, and supporting infrastructure for building observable LLM applications.
 
 ## Features
 
-- **OTel GenAI Spec Compliance** — All spans conform to OpenTelemetry GenAI semantic conventions
-- **Multi-Provider Support** — OpenAI, Anthropic, Vertex AI, AWS Bedrock
-- **Cost Tracking** — Real-time cost calculation per request
-- **Token Counting** — Accurate token counting with provider-specific implementations
-- **Streaming Support** — Full instrumentation for streaming with TTFT tracking and chunk accumulation
-- **PII Redaction** — Automatic detection and redaction of sensitive data
-- **Error Handling** — Comprehensive error classification and retry instrumentation
-- **Circuit Breaker** — Per-provider circuit breaker for resilience
-- **Dashboard Exporters** — Export to Phoenix, Langfuse, and Cloud Trace
-- **Lifecycle Hooks** — `onStart` and `onEnd` hooks for custom span attributes
-- **Safe Uninstrument** — `uninstrument()` method to restore original SDK methods
-
-## What's New
-
-- **OTel spec compliance updates** — Uses `gen_ai.provider.name` (e.g. `gcp.vertex_ai`, `aws.bedrock`) instead of the deprecated `gen_ai.system`
-- **Double-instrumentation guard** — Calling `instrument()` twice on the same client is safely handled as a no-op
-- **New semantic convention constants** — Added `gen_ai.conversation.id`, `gen_ai.output.type`, `gen_ai.request.choice.count`, `gen_ai.usage.cache_read.input_tokens`, `gen_ai.usage.cache_creation.input_tokens`
+- **OTel GenAI spec compliance** — All spans follow the OpenTelemetry GenAI semantic conventions (`gen_ai.*` attributes, events, and metrics)
+- **Multi-provider support** — Instrumented wrappers for OpenAI, Anthropic, Vertex AI, and AWS Bedrock
+- **Streaming instrumentation** — Full streaming support with TTFT tracking, chunk counting, and delta aggregation
+- **Cost tracking** — Built-in pricing tables for GPT-4, Claude 3, Gemini, and Bedrock models with custom pricing overrides
+- **Token counting** — tiktoken integration for OpenAI, estimation fallbacks for all other providers
+- **PII redaction** — Automatic detection and redaction of emails, SSNs, credit cards, IPs, and phone numbers
+- **Error handling** — 12 error type classifications with retryability flags and user-friendly messages
+- **Circuit breaker** — Per-provider circuit breaking with half-open recovery and configurable thresholds
+- **Retry with backoff** — Exponential backoff with jitter, configurable retryable error types, and span metadata
+- **Lifecycle hooks** — `onStart`/`onEnd`/`onError` hooks with priority ordering for custom span attributes
+- **Dashboard exporters** — Native format conversion for Phoenix, Langfuse, and Google Cloud Trace
+- **Health checks** — Runtime health endpoints with OTel SDK and memory threshold monitoring
 
 ## Installation
 
+### Using the packages
+
+Packages are published under the `@reaatech` scope and can be installed individually:
+
 ```bash
-npm install otel-genai-semconv @opentelemetry/sdk-node @opentelemetry/auto-instrumentations-node
+# Core types, constants, and span builder
+pnpm add @reaatech/otel-genai-semconv-core
+
+# Instrumentation framework (tracer, hooks, streaming, circuit breaker, retry)
+pnpm add @reaatech/otel-genai-semconv-instrumentation
+
+# OpenAI provider instrumentation
+pnpm add @reaatech/otel-genai-semconv-openai
+
+# Anthropic provider instrumentation
+pnpm add @reaatech/otel-genai-semconv-anthropic
+
+# Vertex AI provider instrumentation
+pnpm add @reaatech/otel-genai-semconv-vertexai
+
+# AWS Bedrock provider instrumentation
+pnpm add @reaatech/otel-genai-semconv-bedrock
+
+# Token counting, cost calculation, and PII redaction utilities
+pnpm add @reaatech/otel-genai-semconv-utils
+
+# Structured logging, OTel SDK setup, and health checks
+pnpm add @reaatech/otel-genai-semconv-observability
+
+# Dashboard exporters (Phoenix, Langfuse, Cloud Trace)
+pnpm add @reaatech/otel-genai-semconv-exporters
+```
+
+### Contributing
+
+```bash
+# Clone the repository
+git clone https://github.com/reaatech/otel-genai-semconv.git
+cd otel-genai-semconv
+
+# Install dependencies
+pnpm install
+
+# Build all packages
+pnpm build
+
+# Run linting
+pnpm lint
+
+# Run type checking
+pnpm typecheck
 ```
 
 ## Quick Start
 
+Instrument an OpenAI client in 3 lines:
+
 ```typescript
-import { NodeSDK } from '@opentelemetry/sdk-node';
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
-import { OpenAIInstrumentation } from 'otel-genai-semconv/openai';
-import { AnthropicInstrumentation } from 'otel-genai-semconv/anthropic';
-import OpenAI from 'openai';
-import Anthropic from '@anthropic-ai/sdk';
+import { OpenAIInstrumentation } from "@reaatech/otel-genai-semconv-openai";
+import OpenAI from "openai";
 
-const sdk = new NodeSDK({
-  traceExporter: new OTLPTraceExporter({
-    url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:4318/v1/traces',
-  }),
-});
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+new OpenAIInstrumentation({ trackCosts: true }).instrument(client);
 
-sdk.start();
+// Every chat.completions.create() call now emits OTel spans
+const response = await client.chat.completions.create({
+  model: "gpt-4",
+  messages: [{ role: "user", content: "What is OpenTelemetry?" }],
+});
+```
 
-const openAIInstrumentation = new OpenAIInstrumentation({
-  trackCosts: true,
-  captureRequestHeaders: true,
-});
-const anthropicInstrumentation = new AnthropicInstrumentation({
-  trackCosts: true,
-});
+Multi-provider with streaming:
+
+```typescript
+import { OpenAIInstrumentation } from "@reaatech/otel-genai-semconv-openai";
+import { AnthropicInstrumentation } from "@reaatech/otel-genai-semconv-anthropic";
+import OpenAI from "openai";
+import Anthropic from "@anthropic-ai/sdk";
 
 const openai = new OpenAI();
 const anthropic = new Anthropic();
 
-openAIInstrumentation.instrument(openai);
-anthropicInstrumentation.instrument(anthropic);
+new OpenAIInstrumentation({ trackCosts: true }).instrument(openai);
+new AnthropicInstrumentation({ trackCosts: true }).instrument(anthropic);
 
-const response = await openai.chat.completions.create({
-  model: 'gpt-4',
-  messages: [{ role: 'user', content: 'Hello!' }],
-});
-```
-
-## Supported Providers
-
-| Provider | Models | Streaming | Token Counting | Cost Tracking |
-|----------|--------|-----------|----------------|---------------|
-| OpenAI | GPT-4, GPT-4 Turbo, GPT-3.5 | ✅ | ✅ (tiktoken) | ✅ |
-| Anthropic | Claude Opus/Sonnet/Haiku | ✅ | ✅ (API) | ✅ |
-| Vertex AI | Gemini Pro/Ultra | ✅ | ✅ (API) | ✅ |
-| Bedrock | Claude, Llama, Mistral | ✅ | ✅ (varies) | ✅ |
-
-## Semantic Convention Attributes
-
-All instrumentations capture these OTel GenAI attributes:
-
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| `gen_ai.request.model` | string | Requested model name |
-| `gen_ai.request.temperature` | double | Sampling temperature |
-| `gen_ai.request.max_tokens` | int | Maximum tokens to generate |
-| `gen_ai.response.model` | string | Actual model used |
-| `gen_ai.response.finish_reasons` | string[] | Finish reasons |
-| `gen_ai.usage.input_tokens` | int | Input tokens used |
-| `gen_ai.usage.output_tokens` | int | Output tokens generated |
-| `gen_ai.usage.cache_read.input_tokens` | int | Cache read input tokens |
-| `gen_ai.usage.cache_creation.input_tokens` | int | Cache creation input tokens |
-| `gen_ai.conversation.id` | string | Conversation identifier |
-| `gen_ai.request.choice.count` | int | Number of choices requested |
-| `gen_ai.output.type` | string | Output type (text, json) |
-| `gen_ai.provider.name` | string | Provider name (e.g. `gcp.vertex_ai`, `aws.bedrock`) |
-| `llm.cost.total` | double | Total cost in USD |
-
-## Dashboard Integration
-
-### Phoenix
-
-```typescript
-import { PhoenixExporter } from 'otel-genai-semconv/phoenix';
-
-const exporter = new PhoenixExporter({
-  endpoint: process.env.PHOENIX_ENDPOINT || 'http://localhost:6006',
-  datasetName: 'llm-traces',
-});
-```
-
-### Langfuse
-
-```typescript
-import { LangfuseExporter } from 'otel-genai-semconv/langfuse';
-
-const exporter = new LangfuseExporter({
-  publicKey: process.env.LANGFUSE_PUBLIC_KEY,
-  secretKey: process.env.LANGFUSE_SECRET_KEY,
-  baseUrl: process.env.LANGFUSE_BASE_URL || 'https://cloud.langfuse.com',
-});
-```
-
-### Cloud Trace
-
-```typescript
-import { CloudTraceExporter } from 'otel-genai-semconv/cloud-trace';
-
-const exporter = new CloudTraceExporter({
-  projectId: process.env.GOOGLE_CLOUD_PROJECT,
-  serviceName: 'my-llm-app',
-});
-```
-
-## Configuration
-
-### OpenAI Instrumentation
-
-```typescript
-const instrumentation = new OpenAIInstrumentation({
-  captureRequestHeaders: true,
-  captureResponseHeaders: true,
-  trackCosts: true,
-  pricing: {
-    'gpt-4': { input: 0.03, output: 0.06 }, // per 1K tokens
-  },
-  onStart: (span, request) => {
-    span.setAttribute('user.id', request.user?.id);
-  },
-  onEnd: (span, response) => {
-    span.setAttribute('response.quality', computeQualityScore(response));
-  },
+// Streaming is automatically instrumented with TTFT and chunk count
+const stream = await openai.chat.completions.create({
+  model: "gpt-4",
+  messages: [{ role: "user", content: "Tell me a story" }],
+  stream: true,
 });
 
-// Uninstrument when done
-instrumentation.uninstrument(openai);
-```
-
-All provider instrumentations support `onStart`/`onEnd` hooks and an `uninstrument(client)` method. The double-instrumentation guard ensures calling `instrument()` twice on the same client is a safe no-op.
-
-### Error Handling
-
-```typescript
-import { ErrorHandler, LLMErrorType } from 'otel-genai-semconv/instrumentation';
-
-const errorHandler = new ErrorHandler();
-const errorType = errorHandler.classifyError(error);
-// LLMErrorType.RATE_LIMIT, AUTHENTICATION, TIMEOUT, etc.
-```
-
-### Circuit Breaker
-
-```typescript
-import { CircuitBreaker } from 'otel-genai-semconv/instrumentation';
-
-const breaker = new CircuitBreaker({
-  failureThreshold: 5,
-  recoveryTimeoutMs: 60000,
-});
-
-if (breaker.canExecute()) {
-  // Make LLM call
-  breaker.recordSuccess(span);
-} else {
-  // Circuit is open
+for await (const chunk of stream) {
+  process.stdout.write(chunk.choices[0]?.delta?.content || "");
 }
 ```
 
-## Architecture
+See the [`examples/`](./examples/) directory for complete working samples, including multi-provider comparison, streaming, and RAG pipelines.
 
-```
-┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
-│  AI Agent       │────▶│  otel-genai-     │────▶│  LLM Providers  │
-│  (Node.js)      │     │  semconv         │     │                 │
-└─────────────────┘     │  (Instrumentation)│    └─────────────────┘
-                                │
-                                ▼
-                       ┌──────────────────┐
-                       │  OTel Collector  │
-                       └──────────────────┘
-                                │
-                                ▼
-                       ┌──────────────────┐
-                       │    Dashboards    │
-                       │  Phoenix/Langfuse│
-                       └──────────────────┘
-```
+## Packages
+
+| Package | Description |
+| ------- | ----------- |
+| [`@reaatech/otel-genai-semconv-core`](./packages/core) | Canonical types, constants, schemas, and span builder |
+| [`@reaatech/otel-genai-semconv-instrumentation`](./packages/instrumentation) | Core instrumentation framework (tracer, hooks, streaming, retry, circuit breaker) |
+| [`@reaatech/otel-genai-semconv-openai`](./packages/openai) | OpenAI SDK instrumentation |
+| [`@reaatech/otel-genai-semconv-anthropic`](./packages/anthropic) | Anthropic SDK instrumentation |
+| [`@reaatech/otel-genai-semconv-vertexai`](./packages/vertexai) | Vertex AI SDK instrumentation |
+| [`@reaatech/otel-genai-semconv-bedrock`](./packages/bedrock) | AWS Bedrock SDK instrumentation |
+| [`@reaatech/otel-genai-semconv-utils`](./packages/utils) | Token counting, cost calculation, and PII redaction |
+| [`@reaatech/otel-genai-semconv-observability`](./packages/observability) | Logging, OTel SDK setup, metrics, and health checks |
+| [`@reaatech/otel-genai-semconv-exporters`](./packages/exporters) | Dashboard exporters for Phoenix, Langfuse, and Cloud Trace |
+
+## Documentation
+
+- [`ARCHITECTURE.md`](./ARCHITECTURE.md) — System design, package relationships, and data flows
+- [`AGENTS.md`](./AGENTS.md) — Coding conventions and development guidelines
+- [`CONTRIBUTING.md`](./CONTRIBUTING.md) — Contribution workflow and release process
+- [`CONTRIBUTING.md`](./CONTRIBUTING.md) — Contribution workflow and release process
+- [`docs/`](./docs/) — In-depth reference material for semantic conventions, dashboard setup, and configuration
 
 ## License
 
-MIT
+[MIT](LICENSE)

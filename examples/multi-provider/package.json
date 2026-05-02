@@ -1,19 +1,26 @@
 {
   "name": "otel-genai-semconv-example-multi-provider",
   "version": "1.0.0",
+  "private": true,
   "type": "module",
   "description": "Multi-provider example for otel-genai-semconv",
   "scripts": {
-    "start": "node --loader ts-node/esm index.ts"
+    "build": "tsup index.ts --format esm --clean",
+    "start": "node dist/index.js"
   },
   "dependencies": {
-    "otel-genai-semconv": "file:../..",
-    "openai": "^4.0.0",
-    "@anthropic-ai/sdk": "^2.0.0",
+    "@reaatech/otel-genai-semconv-core": "workspace:*",
+    "@reaatech/otel-genai-semconv-openai": "workspace:*",
+    "@reaatech/otel-genai-semconv-anthropic": "workspace:*",
+    "@reaatech/otel-genai-semconv-utils": "workspace:*",
+    "@reaatech/otel-genai-semconv-observability": "workspace:*",
     "@opentelemetry/sdk-node": "^0.51.0",
-    "@opentelemetry/exporter-trace-otlp-http": "^0.51.0"
+    "@opentelemetry/exporter-trace-otlp-http": "^0.51.0",
+    "openai": "^4.0.0",
+    "@anthropic-ai/sdk": "^0.18.0"
   },
   "devDependencies": {
-    "ts-node": "^10.9.0"
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.3"
   }
 }
