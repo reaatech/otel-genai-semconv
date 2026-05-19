@@ -32,11 +32,11 @@
   },
   "dependencies": {
     "@opentelemetry/api": "^1.9.0",
-    "@opentelemetry/exporter-trace-otlp-http": "^0.51.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.217.0",
     "@opentelemetry/resources": "^2.7.0",
     "@opentelemetry/sdk-metrics": "^2.7.0",
-    "@opentelemetry/sdk-node": "^0.51.0",
-    "@opentelemetry/semantic-conventions": "^1.24.0",
+    "@opentelemetry/sdk-node": "^0.217.0",
+    "@opentelemetry/semantic-conventions": "^1.29.0",
     "@reaatech/otel-genai-semconv-core": "workspace:*",
     "pino": "^10.3.1",
     "pino-pretty": "^13.1.3"

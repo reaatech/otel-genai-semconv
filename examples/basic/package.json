@@ -13,8 +13,8 @@
     "@reaatech/otel-genai-semconv-openai": "workspace:*",
     "@reaatech/otel-genai-semconv-utils": "workspace:*",
     "@reaatech/otel-genai-semconv-observability": "workspace:*",
-    "@opentelemetry/sdk-node": "^0.51.0",
-    "@opentelemetry/exporter-trace-otlp-http": "^0.51.0",
+    "@opentelemetry/sdk-node": "^0.217.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.217.0",
     "openai": "^4.0.0"
   },
   "devDependencies": {
