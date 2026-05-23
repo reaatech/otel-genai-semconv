@@ -41,6 +41,11 @@
     "url": "https://github.com/reaatech/otel-genai-semconv/issues"
   },
   "homepage": "https://github.com/reaatech/otel-genai-semconv#readme",
+  "pnpm": {
+    "overrides": {
+      "protobufjs": "8.0.2"
+    }
+  },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@changesets/changelog-github": "^0.6.0",
