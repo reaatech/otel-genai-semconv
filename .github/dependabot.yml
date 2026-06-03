@@ -1,50 +1,39 @@
 version: 2
 updates:
-  - package-ecosystem: "npm"
-    directory: "/"
+  - package-ecosystem: npm
+    directory: /
     schedule:
-      interval: "weekly"
-      day: "monday"
+      interval: weekly
+      day: monday
       time: "09:00"
-      timezone: "America/Chicago"
+      timezone: America/Chicago
     versioning-strategy: increase
-    allow:
-      - dependency-type: "direct"
-        update-types:
-          - "major"
-          - "patch"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
     groups:
       production-deps:
-        dependency-type: "production"
-        update-types:
-          - "major"
-          - "patch"
+        patterns: ["*"]
+        dependency-type: production
       development-deps:
-        dependency-type: "development"
-        update-types:
-          - "major"
-          - "patch"
-    labels:
-      - "dependencies"
-      - "dependabot"
+        patterns: ["*"]
+        dependency-type: development
+    labels: ["dependencies", "dependabot"]
     commit-message:
       prefix: "chore(deps)"
       prefix-development: "chore(dev-deps)"
-      include: "scope"
+      include: scope
     open-pull-requests-limit: 10
-    rebase-strategy: "auto"
-
-  - package-ecosystem: "github-actions"
-    directory: "/"
+    rebase-strategy: auto
+  - package-ecosystem: github-actions
+    directory: /
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-      timezone: "America/Chicago"
-    labels:
-      - "dependencies"
-      - "github-actions"
-      - "dependabot"
+      interval: weekly
+      day: monday
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+    labels: ["dependencies", "github-actions", "dependabot"]
     commit-message:
       prefix: "ci(actions)"
-      include: "scope"
+      include: scope
