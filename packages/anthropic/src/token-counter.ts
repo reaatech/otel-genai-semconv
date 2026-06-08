@@ -1,3 +1,5 @@
+import type { ContentBlock } from '@reaatech/otel-genai-semconv-core';
+
 export class AnthropicTokenCounter {
   private readonly cache: Map<string, number>;
 
@@ -19,7 +21,7 @@ export class AnthropicTokenCounter {
   }
 
   countMessagesTokens(
-    messages: Array<{ role: string; content: string | unknown }>,
+    messages: Array<{ role: string; content: string | ContentBlock[] }>,
     model: string,
   ): number {
     let totalTokens = 0;

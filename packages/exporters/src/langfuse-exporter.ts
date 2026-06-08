@@ -11,6 +11,22 @@ export interface LangfuseExporterConfig {
   projectId?: string;
 }
 
+interface LangfuseSpan {
+  traceId: string;
+  observationId: string;
+  parentObservationId: string | undefined;
+  name: string;
+  startTime: string;
+  endTime: string;
+  level: string;
+  input: { content: unknown } | null;
+  output: { content: unknown } | null;
+  metadata: {
+    attributes: Record<string, unknown>;
+    events: Array<{ name: string; time?: [number, number]; attributes?: Record<string, unknown> }>;
+  };
+}
+
 export class LangfuseExporter implements SpanExporter {
   private readonly spans: ReadableSpan[] = [];
 
@@ -38,7 +54,7 @@ export class LangfuseExporter implements SpanExporter {
     }
   }
 
-  getLangfuseFormat(): unknown[] {
+  getLangfuseFormat(): LangfuseSpan[] {
     return this.spans.map((span) => ({
       traceId: span.spanContext().traceId,
       observationId: span.spanContext().spanId,
@@ -56,7 +72,7 @@ export class LangfuseExporter implements SpanExporter {
     }));
   }
 
-  private extractInput(span: ReadableSpan): unknown {
+  private extractInput(span: ReadableSpan): { content: unknown } | null {
     const userMessage = span.events.find((e) => e.name === 'gen_ai.user.message');
     if (userMessage) {
       return { content: (userMessage.attributes as Record<string, unknown>)?.content };
@@ -64,7 +80,7 @@ export class LangfuseExporter implements SpanExporter {
     return null;
   }
 
-  private extractOutput(span: ReadableSpan): unknown {
+  private extractOutput(span: ReadableSpan): { content: unknown } | null {
     const assistantMessage = span.events.find((e) => e.name === 'gen_ai.assistant.message');
     if (assistantMessage) {
       return { content: (assistantMessage.attributes as Record<string, unknown>)?.content };

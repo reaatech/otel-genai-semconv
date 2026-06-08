@@ -1,3 +1,4 @@
+import type { IncomingMessage } from 'node:http';
 import { trace } from '@opentelemetry/api';
 
 export interface HealthCheckResult {
@@ -62,7 +63,7 @@ export async function performHealthCheck(
 
 export function createHealthCheckHandler(config?: HealthCheckConfig) {
   return async (
-    _req: unknown,
+    _req: IncomingMessage,
     res: {
       statusCode: number;
       end: (body?: string) => void;

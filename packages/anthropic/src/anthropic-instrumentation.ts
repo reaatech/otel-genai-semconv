@@ -11,6 +11,12 @@ import { mapAnthropicRequest, mapAnthropicResponse } from './attribute-mapper.js
 const WRAPPED_SYMBOL = Symbol.for('otel.genai.anthropic.wrapped');
 const ORIGINAL_CREATE_SYMBOL = Symbol.for('otel.genai.anthropic.original_create');
 
+function isToolUseContent(value: unknown): value is { name: string; input: unknown } {
+  return (
+    typeof value === 'object' && value !== null && (value as { type?: string }).type === 'tool_use'
+  );
+}
+
 export interface AnthropicInstrumentationConfig {
   captureRequestHeaders?: boolean;
   captureResponseHeaders?: boolean;
@@ -223,11 +229,10 @@ export class AnthropicInstrumentation {
     for (const content of response.content) {
       if (content.type === 'text') {
         span.addEvent(GEN_AI_EVENTS.ASSISTANT_MESSAGE, { content: content.text });
-      } else if ('type' in content && content.type === 'tool_use') {
-        const toolContent = content as unknown as { name: string; input: unknown };
+      } else if (isToolUseContent(content)) {
         span.addEvent('gen_ai.tool_call', {
-          tool_name: toolContent.name,
-          tool_input: JSON.stringify(toolContent.input),
+          tool_name: content.name,
+          tool_input: JSON.stringify(content.input),
         });
       }
     }

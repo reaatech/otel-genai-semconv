@@ -10,7 +10,7 @@ import {
 } from './attribute-mapper.js';
 
 type GenerativeModel = {
-  generateContent: (req: unknown) => Promise<GenerateContentResponse>;
+  generateContent: (req: GenerateContentRequest | string) => Promise<GenerateContentResponse>;
   model?: string;
 };
 
@@ -56,8 +56,10 @@ export class VertexAIInstrumentation {
 
     const originalGenerateContent = model.generateContent.bind(model);
 
-    model.generateContent = async (req: unknown): Promise<GenerateContentResponse> => {
-      const request = req as GenerateContentRequest | string;
+    model.generateContent = async (
+      req: GenerateContentRequest | string,
+    ): Promise<GenerateContentResponse> => {
+      const request = req;
       const normalizedRequest =
         typeof request === 'string'
           ? { contents: [{ role: 'user', parts: [{ text: request }] }] }
