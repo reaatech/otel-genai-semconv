@@ -10,6 +10,20 @@ export interface CloudTraceExporterConfig {
   maxSpans?: number;
 }
 
+interface CloudTraceSpan {
+  projectId: string;
+  traceId: string;
+  spanId: string;
+  parentSpanId: string;
+  name: string;
+  startTime: string;
+  endTime: string;
+  attributes: Record<string, string | number | boolean>;
+  displayName: { value: string; truncatedByteCount: number };
+  spanKind: string;
+  spanStatus: { code: string; message?: string };
+}
+
 export class CloudTraceExporter implements SpanExporter {
   private readonly config: Required<CloudTraceExporterConfig>;
   private readonly spans: ReadableSpan[] = [];
@@ -49,7 +63,7 @@ export class CloudTraceExporter implements SpanExporter {
     }
   }
 
-  getCloudTraceFormat(): unknown[] {
+  getCloudTraceFormat(): CloudTraceSpan[] {
     return this.spans.map((span) => ({
       projectId: this.config.projectId,
       traceId: span.spanContext().traceId,

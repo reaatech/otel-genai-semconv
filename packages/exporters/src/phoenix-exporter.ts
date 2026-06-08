@@ -10,6 +10,18 @@ export interface PhoenixExporterConfig {
   maxSpans?: number;
 }
 
+interface PhoenixSpan {
+  trace_id: string;
+  span_id: string;
+  parent_span_id: string | undefined;
+  name: string;
+  start_time: number;
+  end_time: number;
+  status: { code?: number; message?: string };
+  attributes: Record<string, unknown>;
+  events: Array<{ name: string; time?: [number, number]; attributes?: Record<string, unknown> }>;
+}
+
 export class PhoenixExporter implements SpanExporter {
   private readonly spans: ReadableSpan[] = [];
   private readonly maxSpans: number;
@@ -41,7 +53,7 @@ export class PhoenixExporter implements SpanExporter {
     }
   }
 
-  getPhoenixFormat(): unknown[] {
+  getPhoenixFormat(): PhoenixSpan[] {
     return this.spans.map((span) => ({
       trace_id: span.spanContext().traceId,
       span_id: span.spanContext().spanId,

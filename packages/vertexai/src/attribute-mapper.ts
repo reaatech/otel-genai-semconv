@@ -1,8 +1,10 @@
 import { GEN_AI_ATTRIBUTES } from '@reaatech/otel-genai-semconv-core';
 
+export type Part = { text: string } | Record<string, unknown>;
+
 export type GenerateContentRequest = {
-  contents: Array<{ role: string; parts: Array<{ text: string } | unknown> }>;
-  systemInstruction?: { parts: Array<{ text: string } | unknown> };
+  contents: Array<{ role: string; parts: Part[] }>;
+  systemInstruction?: { parts: Part[] };
   generationConfig?: {
     temperature?: number;
     topP?: number;
@@ -18,7 +20,7 @@ export type GenerateContentRequest = {
 
 export type GenerateContentResponse = {
   candidates?: Array<{
-    content?: { parts: Array<{ text: string } | unknown> };
+    content?: { parts: Part[] };
     finishReason?: string | null;
   }>;
   usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number };

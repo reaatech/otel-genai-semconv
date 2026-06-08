@@ -1,4 +1,4 @@
-import type { SpanAttributes } from '@opentelemetry/api';
+import type { Span, SpanAttributes } from '@opentelemetry/api';
 
 export type ProviderType = 'openai' | 'anthropic' | 'vertexai' | 'bedrock';
 
@@ -129,9 +129,9 @@ export interface InstrumentationConfig {
   piiRedactionEnabled?: boolean;
   redactMessageContent?: boolean;
   customAttributes?: Record<string, string | number | boolean>;
-  onStart?: (span: unknown, request: LLMRequest) => void;
-  onEnd?: (span: unknown, response: LLMResponse) => void;
-  onError?: (span: unknown, error: Error) => void;
+  onStart?: (span: Span, request: LLMRequest) => void;
+  onEnd?: (span: Span, response: LLMResponse) => void;
+  onError?: (span: Span, error: Error) => void;
 }
 
 export interface GenAISpanAttributes extends SpanAttributes {
